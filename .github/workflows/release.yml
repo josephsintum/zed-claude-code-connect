@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            asset: zed-claude-ide-server-macos-aarch64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            asset: zed-claude-ide-server-macos-x86_64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            asset: zed-claude-ide-server-linux-x86_64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+            asset: zed-claude-ide-server-linux-aarch64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --locked --release --target ${{ matrix.target }} -p zed-claude-ide-server
+
+      # The extension matches assets by exact name -- see get_platform_binary_prefix
+      # in zed-claude-ide/src/lib.rs. A rename here silently breaks installation on
+      # that platform, so the names must stay in step with that function.
+      - name: Stage asset
+        run: cp target/${{ matrix.target }}/release/zed-claude-ide-server ${{ matrix.asset }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: zed-claude-ide-server-*
+          generate_release_notes: true

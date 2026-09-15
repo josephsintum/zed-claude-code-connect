@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+      # The integration tests bind loopback ports and write lock files, so they
+      # need a real filesystem and network stack -- not just `cargo check`.
+      - name: Test
+        run: cargo test --locked --workspace
+
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - uses: Swatinem/rust-cache@v2
+
+      # Zed compiles the extension itself, so a break here only shows up at
+      # install time for users. Build it in CI instead.
+      - name: Build extension
+        run: cargo build --locked --release -p zed-claude-ide --target wasm32-wasip2

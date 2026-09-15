@@ -1,0 +1,42 @@
+[package]
+name = "zed-claude-ide-server"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "zed_claude_ide_server"
+path = "src/lib.rs"
+
+[[bin]]
+name = "zed-claude-ide-server"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
+tower-lsp = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { version = "4.0", features = ["derive"] }
+dirs = "5.0"
+subtle = { workspace = true }
+rand = "0.8"
+libc = "0.2"
+# CancellationToken and its drop guard for the one shutdown path. Already in the
+# dependency graph through tower-lsp; no new download.
+tokio-util = "0.7"
+# The Service trait, to observe the LSP `exit` notification on its way into
+# tower-lsp. Already in the graph through tower-lsp.
+tower-service = "0.3"
+[dev-dependencies]
+dirs = "5.0"
+tempfile = "3"
+# test-util: paused time for the debounce tests.
+tokio = { workspace = true, features = ["full", "test-util"] }
+futures-util = { workspace = true }
+tokio-tungstenite = { workspace = true }
