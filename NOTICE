@@ -1,0 +1,20 @@
+zed-claude-ide
+
+This project is derived from prior MIT-licensed work:
+
+  - isomoes/claude-code-zed   (original; repository now archived)
+  - celve/claude-code-zed     (maintained fork; derived at commit ff62177)
+
+Both are distributed under the MIT License, reproduced in LICENSE. The upstream
+LICENSE carries no named copyright holder ("Copyright (c) 2025"), so credit is
+given here to the repositories rather than to an individual.
+
+Substantial changes in this project relative to celve/claude-code-zed:
+  - WebSocket authorization is enforced (upstream minted a token and never
+    checked it, leaving the MCP session open to any local process)
+  - JSON-RPC notifications are no longer answered with error responses
+  - MCP protocolVersion restored to 2025-03-26
+  - Lock file written atomically with 0600/0700 permissions
+  - Selection text read from an in-memory document cache rather than from disk,
+    so unsaved buffers report correctly
+  - at_mentioned reachable via an authenticated local control route
