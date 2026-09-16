@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::ffi::OsString;
+use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
@@ -93,5 +94,63 @@ impl LockDir {
 
     pub fn lock_path(&self, port: u16) -> PathBuf {
         self.path.join(format!("{port}.lock"))
+    }
+
+    /// Create the directory if needed and make it owner-only. Tightens an
+    /// existing directory too: it may predate this server, or another tool may
+    /// have created it with the default umask.
+    pub fn prepare(&self) -> io::Result<()> {
+        fs::create_dir_all(&self.path)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&self.path, fs::Permissions::from_mode(0o700))?;
+        }
+        Ok(())
+    }
+
+    /// Write the lock for `port`, replacing any stale one.
+    ///
+    /// Written to a temporary name then renamed, so a reader can never observe a
+    /// half-written lock, and the rename replaces a leftover from a crashed
+    /// process atomically.
+    pub fn write(&self, port: u16, lock: &LockFile) -> io::Result<()> {
+        self.prepare()?;
+        let final_path = self.lock_path(port);
+        let tmp_path = self.path.join(format!(".{port}.lock.tmp"));
+        let _ = fs::remove_file(&tmp_path);
+
+        // Compact, matching the byte shape the VS Code extension writes.
+        let json = serde_json::to_vec(lock).map_err(io::Error::other)?;
+        {
+            use std::io::Write;
+            let mut options = fs::OpenOptions::new();
+            options.write(true).create_new(true);
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::OpenOptionsExt;
+                options.mode(0o600);
+            }
+            let mut f = options.open(&tmp_path)?;
+            f.write_all(&json)?;
+            f.sync_all()?;
+        }
+        fs::rename(&tmp_path, &final_path)?;
+        Ok(())
+    }
+
+    /// Remove the lock for `port` if it exists.
+    pub fn remove(&self, port: u16) -> io::Result<()> {
+        remove_ignoring_missing(&self.lock_path(port))
+    }
+}
+
+/// A lock that is already gone is not an error: a concurrent cleanup, or the CLI
+/// unlinking a lock it judged stale, both leave nothing to do.
+fn remove_ignoring_missing(path: &Path) -> io::Result<()> {
+    match fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(e),
     }
 }

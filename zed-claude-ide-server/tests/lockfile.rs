@@ -71,3 +71,68 @@ fn a_lenient_read_tolerates_a_strangers_lock() {
     assert!(raw.workspace_folders.is_empty());
     assert!(raw.auth_token.is_empty());
 }
+
+#[test]
+fn writing_and_removing_a_lock() {
+    let dir = tempfile::tempdir().unwrap();
+    let lock_dir = LockDir::at(dir.path().join("ide"));
+    let lock = LockFile::for_this_process(Path::new("/p"), "t");
+
+    lock_dir.write(54321, &lock).unwrap();
+    let path = lock_dir.lock_path(54321);
+    assert!(path.exists());
+
+    lock_dir.remove(54321).unwrap();
+    assert!(!path.exists());
+
+    lock_dir
+        .remove(54321)
+        .expect("removing a lock that is already gone is not an error");
+}
+
+#[test]
+fn no_temp_file_is_left_behind() {
+    let dir = tempfile::tempdir().unwrap();
+    let lock_dir = LockDir::at(dir.path());
+    lock_dir
+        .write(54321, &LockFile::for_this_process(Path::new("/p"), "t"))
+        .unwrap();
+
+    let leftovers: Vec<_> = std::fs::read_dir(dir.path())
+        .unwrap()
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|n| n.ends_with(".tmp"))
+        .collect();
+    assert!(leftovers.is_empty(), "{leftovers:?}");
+}
+
+#[cfg(unix)]
+#[test]
+fn the_lock_and_its_directory_are_owner_only() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tempfile::tempdir().unwrap();
+    let ide = dir.path().join("ide");
+    // Pre-create it world-readable: prepare() must tighten it, not just accept it.
+    std::fs::create_dir_all(&ide).unwrap();
+    std::fs::set_permissions(&ide, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+    let lock_dir = LockDir::at(&ide);
+    lock_dir
+        .write(54321, &LockFile::for_this_process(Path::new("/p"), "t"))
+        .unwrap();
+
+    let dir_mode = std::fs::metadata(&ide).unwrap().permissions().mode() & 0o777;
+    assert_eq!(
+        dir_mode, 0o700,
+        "the directory holds files containing tokens"
+    );
+
+    let file_mode = std::fs::metadata(lock_dir.lock_path(54321))
+        .unwrap()
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(file_mode, 0o600, "the lock file contains a bearer token");
+}
