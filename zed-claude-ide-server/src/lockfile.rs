@@ -3,9 +3,56 @@
 //! The CLI scans a directory for `<port>.lock` and takes the port from the file
 //! *name*. A port field inside the file is ignored.
 
+use serde::{Deserialize, Serialize};
 use std::ffi::OsString;
 use std::io;
 use std::path::{Path, PathBuf};
+
+/// Shown in the CLI's `/ide` picker, and how this project's own tooling tells its
+/// lock files apart from those of any other editor open on the same project.
+pub const IDE_NAME: &str = "Zed";
+
+/// What this companion writes. The key set is a contract with the CLI.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LockFile {
+    pub pid: u32,
+    #[serde(rename = "workspaceFolders")]
+    pub workspace_folders: Vec<String>,
+    #[serde(rename = "ideName")]
+    pub ide_name: String,
+    pub transport: String,
+    #[serde(rename = "runningInWindows")]
+    pub running_in_windows: bool,
+    #[serde(rename = "authToken")]
+    pub auth_token: String,
+}
+
+impl LockFile {
+    /// A lock for this process serving `worktree` with `auth_token`.
+    pub fn for_this_process(worktree: &Path, auth_token: &str) -> Self {
+        Self {
+            pid: std::process::id(),
+            workspace_folders: vec![worktree.to_string_lossy().into_owned()],
+            ide_name: IDE_NAME.to_string(),
+            transport: "ws".to_string(),
+            running_in_windows: false,
+            auth_token: auth_token.to_string(),
+        }
+    }
+}
+
+/// What this project reads from any lock in the directory, ours or not.
+#[derive(Debug, Clone, Deserialize)]
+pub struct RawLock {
+    #[serde(rename = "workspaceFolders", default)]
+    pub workspace_folders: Vec<String>,
+    #[serde(rename = "authToken", default)]
+    pub auth_token: String,
+    #[serde(rename = "ideName", default)]
+    pub ide_name: String,
+    #[serde(default)]
+    pub pid: u32,
+}
 
 // The directory lock files live in.
 #[derive(Debug, Clone)]
