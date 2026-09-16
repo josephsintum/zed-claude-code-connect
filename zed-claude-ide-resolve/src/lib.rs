@@ -55,10 +55,51 @@ pub fn is_versioned_binary(prefix: &str, name: &str) -> bool {
     }
 }
 
+pub fn existing_binaries(prefix: &str, names: impl IntoIterator<Item = String>) -> Vec<String> {
+    names
+        .into_iter()
+        .filter(|n| n == prefix || is_versioned_binary(prefix, n))
+        .collect()
+}
+
+pub fn fallback_binary(prefix: &str, names: impl IntoIterator<Item = String>) -> Option<String> {
+    let mut candidates = existing_binaries(prefix, names);
+    // Alphabetical, not semantic: "v0.10.0" sorts before "v0.2.0". Only reached
+    // when a download is impossible, and versions are still single-digit.
+    candidates.sort();
+    candidates
+        .iter()
+        .rev()
+        .find(|n| is_versioned_binary(prefix, n))
+        .cloned()
+        .or_else(|| candidates.into_iter().find(|n| n == prefix))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     const PREFIX: &str = "zed-claude-ide-server-macos-aarch64";
+
+    fn names(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn versioned_and_legacy_binaries_are_both_found() {
+        let got = existing_binaries(
+            PREFIX,
+            names(&[
+                PREFIX,
+                "zed-claude-ide-server-macos-aarch64-v0.1.0",
+                "zed-claude-ide-server-macos-x86_64-v0.1.0",
+                "unrelated",
+            ]),
+        );
+        assert_eq!(
+            got,
+            names(&[PREFIX, "zed-claude-ide-server-macos-aarch64-v0.1.0"])
+        );
+    }
 
     #[test]
     fn a_versioned_build_is_something_to_run() {
@@ -75,6 +116,7 @@ mod tests {
             !is_versioned_binary(PREFIX, &temp),
             "{temp} is a truncated download, not something to run"
         );
+        assert!(existing_binaries(PREFIX, names(&[&temp])).is_empty());
     }
 
     #[test]
@@ -105,5 +147,26 @@ mod tests {
     fn windows_and_unknown_platforms_are_refused_with_a_reason() {
         assert!(asset_name(Os::Windows, Arch::X86_64).is_err());
         assert!(asset_name(Os::Linux, Arch::X86).is_err());
+    }
+
+    #[test]
+    fn fallback_prefers_the_newest_versioned_build_over_the_legacy_name() {
+        let got = fallback_binary(
+            PREFIX,
+            names(&[
+                PREFIX,
+                "zed-claude-ide-server-macos-aarch64-v0.1.0",
+                "zed-claude-ide-server-macos-aarch64-v0.2.0",
+            ]),
+        );
+        assert_eq!(
+            got.as_deref(),
+            Some("zed-claude-ide-server-macos-aarch64-v0.2.0")
+        );
+        assert_eq!(
+            fallback_binary(PREFIX, names(&[PREFIX])).as_deref(),
+            Some(PREFIX)
+        );
+        assert_eq!(fallback_binary(PREFIX, names(&[])), None);
     }
 }
