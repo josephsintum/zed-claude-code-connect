@@ -169,4 +169,35 @@ mod tests {
         );
         assert_eq!(fallback_binary(PREFIX, names(&[])), None);
     }
+
+    #[test]
+    fn asset_names_match_the_release_workflow() {
+        let workflow = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../.github/workflows/release.yml"
+        ))
+        .expect("release workflow");
+        let mut published: Vec<&str> = workflow
+            .lines()
+            .filter_map(|l| l.trim().strip_prefix("asset:"))
+            .map(str::trim)
+            .collect();
+        published.sort_unstable();
+
+        let mut ours: Vec<&str> = [
+            (Os::Mac, Arch::Aarch64),
+            (Os::Mac, Arch::X86_64),
+            (Os::Linux, Arch::X86_64),
+            (Os::Linux, Arch::Aarch64),
+        ]
+        .into_iter()
+        .map(|(os, arch)| asset_name(os, arch).unwrap())
+        .collect();
+        ours.sort_unstable();
+
+        assert_eq!(
+            ours, published,
+            "the extension looks assets up by exact name; a mismatch breaks install on that platform"
+        );
+    }
 }
