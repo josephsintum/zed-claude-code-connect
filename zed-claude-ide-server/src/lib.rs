@@ -3,4 +3,5 @@
 pub mod config;
 pub mod discovery;
 pub mod lockfile;
+pub mod lsp;
 pub mod selection;
