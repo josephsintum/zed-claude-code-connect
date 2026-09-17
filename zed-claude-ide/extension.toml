@@ -4,7 +4,7 @@ version = "0.1.0"
 schema_version = 1
 authors = []
 description = "Feeds Zed editor context (active file, selection) to the Claude Code CLI running in any terminal"
-repository = "https://github.com/YOUR_GITHUB_USER/zed-claude-ide"
+repository = "https://github.com/josephsintum/zed-claude-ide"
 
 [language_servers.zed-claude-ide-server]
 name = "Claude Code Server"

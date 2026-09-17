@@ -21,7 +21,7 @@ const SERVER_ID: &str = "zed-claude-ide-server";
 
 /// Releases are downloaded from here. Still a placeholder: until it names a real
 /// repository, only the settings-path and PATH tiers can succeed.
-const GITHUB_REPO: &str = "YOUR_GITHUB_USER/zed-claude-ide";
+const GITHUB_REPO: &str = "josephsintum/zed-claude-ide";
 
 struct ClaudeCodeExtension {
     /// The binary resolved earlier in this session.
