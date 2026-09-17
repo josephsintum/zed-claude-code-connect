@@ -444,6 +444,16 @@ async fn start_with_notifications() -> Handle {
         .expect("companion starts")
 }
 
+/// A companion whose event ring holds two entries, so a client that does not read
+/// is overrun in a handful of publishes rather than a hundred-odd. tokio rounds
+/// broadcast capacity up to a power of two, which is why the old "publish 80 into
+/// a 100-slot ring" flood never lagged at all: the ring was really 128.
+async fn start_with_tiny_event_ring() -> Handle {
+    Companion::start(cfg(ide_dir().to_path_buf()).with_event_capacity(2))
+        .await
+        .expect("companion starts")
+}
+
 async fn call_tool(
     ws: &mut tokio_tungstenite::WebSocketStream<
         tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
@@ -489,16 +499,19 @@ async fn a_new_connection_can_report_the_selection_it_missed() {
     assert_eq!(got["filePath"], "/tmp/seen.rs");
 }
 
-/// A broadcast receiver that falls behind gets RecvError::Lagged, which leaves it
-/// usable -- the cursor advances to the oldest retained message. Treating that as
-/// terminal froze the selection cache for the life of the process, so every later
-/// client replayed a stale selection and at-mentions cited it.
+/// The replay a new client gets comes from the `watch` cell, not the broadcast ring:
+/// `publish_selection` writes the cell first and the ring is best effort. So a client
+/// that connects long after the editor went quiet still learns where the cursor is.
+///
+/// This test was named for lag and did not test it: it connects only after every
+/// publish, so there is no subscriber, nothing enters the ring, and the assertion
+/// reads the cell either way. Lag itself is covered by the test below.
 #[tokio::test]
-async fn the_selection_cache_survives_a_lagging_receiver() {
+async fn the_replay_cache_holds_the_selection_sent_last() {
     let h = start_with_notifications().await;
     let (port, token, bus) = (h.port(), h.auth_token().to_string(), h.bus().clone());
 
-    // Overrun the 16-slot ring several times over.
+    // Nothing is connected yet, so none of these reach the broadcast ring at all.
     for i in 0..80 {
         bus.publish_selection(selection("/tmp/burst.rs", &format!("burst {i}")));
     }
@@ -525,7 +538,7 @@ async fn the_selection_cache_survives_a_lagging_receiver() {
 /// silently unsubscribed while its connection stays open and looks healthy.
 #[tokio::test]
 async fn a_lagging_client_still_receives_later_notifications() {
-    let h = start_with_notifications().await;
+    let h = start_with_tiny_event_ring().await;
     let (port, token, bus) = (h.port(), h.auth_token().to_string(), h.bus().clone());
 
     let (mut ws, _) = tokio_tungstenite::connect_async(request(port, Some(&token)))

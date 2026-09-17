@@ -23,10 +23,6 @@ use crate::lsp;
 use crate::mcp;
 use crate::selection::{EventBus, SelectionTracker};
 
-/// How far a slow CLI may fall behind the editor before it starts skipping
-/// events. Only the newest selection matters, so skipping is harmless.
-const EVENT_CAPACITY: usize = 100;
-
 /// How long `shutdown` waits for the accept loop and tracker to wind down.
 const SHUTDOWN_GRACE: Duration = Duration::from_secs(2);
 
@@ -59,7 +55,7 @@ impl Companion {
             lock.path().display()
         );
 
-        let bus = EventBus::new(EVENT_CAPACITY);
+        let bus = EventBus::new(config.event_capacity);
         let (tracker, tracker_task) = SelectionTracker::new(bus.clone(), config.debounce);
         let cancel = CancellationToken::new();
         let mut tasks = JoinSet::new();
