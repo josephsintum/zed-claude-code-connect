@@ -36,3 +36,9 @@ extension/
 # The original agent-written implementation, kept locally as the answer key.
 # Also pushed to the orphan "reference" branch.
 /reference/
+
+# The Go answer key, kept locally alongside the Rust one. Not the deliverable:
+# zed-claude-ide-server-go/ is where the hand-typed Go goes.
+/reference-go/
+/reference-go-other/
+/reference-go-other/
