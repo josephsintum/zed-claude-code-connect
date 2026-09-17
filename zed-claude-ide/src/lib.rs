@@ -19,8 +19,8 @@ use zed_extension_api::{
 /// key users put under `"lsp"` in settings.json to override the binary.
 const SERVER_ID: &str = "zed-claude-ide-server";
 
-/// Releases are downloaded from here. Still a placeholder: until it names a real
-/// repository, only the settings-path and PATH tiers can succeed.
+/// Releases are downloaded from here. Asset names in that release must match
+/// `asset_name` exactly; a test reads the workflow and fails if they drift.
 const GITHUB_REPO: &str = "josephsintum/zed-claude-ide";
 
 struct ClaudeCodeExtension {
