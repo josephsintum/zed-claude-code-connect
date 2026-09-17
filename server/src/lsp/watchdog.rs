@@ -20,8 +20,12 @@ pub async fn parent_exited(interval: Duration) {
         loop {
             tokio::time::sleep(interval).await;
             let current = parent_id();
-            // Orphans are reparented to init (pid 1) or, on macOS, launchd.
-            if current != initial || current == 1 {
+            // Reparenting is the whole signal: an orphan is handed to init (pid 1)
+            // or, on macOS, launchd. Testing for pid 1 separately would be either
+            // redundant -- it already differs from any ordinary parent -- or wrong,
+            // firing on the first tick for a companion whose parent was init all
+            // along, which is how it reads under a container entrypoint.
+            if current != initial {
                 warn!(
                     "parent process changed from {} to {}; Zed has gone away",
                     initial, current
