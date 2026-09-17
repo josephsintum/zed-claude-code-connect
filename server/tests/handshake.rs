@@ -131,6 +131,31 @@ async fn handshake_echoes_mcp_subprotocol() {
     );
 }
 
+/// RFC 6455 lets the server select only a protocol the client actually offered, and
+/// a client that receives one it did not offer must fail the connection. A substring
+/// test on the offer list claims `mcp` to anyone whose protocol merely contains those
+/// three letters, which presents to them as an unexplained handshake failure.
+#[tokio::test]
+async fn a_protocol_that_merely_contains_mcp_is_not_echoed() {
+    let h = start().await;
+    let mut req = format!("ws://127.0.0.1:{}", h.port)
+        .into_client_request()
+        .unwrap();
+    req.headers_mut()
+        .insert("Sec-WebSocket-Protocol", "x-mcp-v2".parse().unwrap());
+    req.headers_mut()
+        .insert("X-Claude-Code-Ide-Authorization", h.token.parse().unwrap());
+
+    let (_ws, resp) = tokio_tungstenite::connect_async(req)
+        .await
+        .expect("handshake should still complete");
+    assert_eq!(
+        resp.headers().get("sec-websocket-protocol"),
+        None,
+        "x-mcp-v2 is not mcp; echoing it selects a protocol the client never offered"
+    );
+}
+
 #[tokio::test]
 async fn initialize_reports_negotiated_protocol_version() {
     let h = start().await;

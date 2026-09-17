@@ -42,39 +42,41 @@ pub(super) async fn handle_connection(
     // The Err variant here is tungstenite's ErrorResponse; its size is fixed by the
     // API being called, and this runs once per connection.
     #[allow(clippy::result_large_err)]
-    let ws_stream = match accept_hdr_async(stream, move |req: &Request, mut response: Response| {
-        // HeaderMap lookup is case-insensitive; the CLI sends this capitalised.
-        *presented_cb.lock().unwrap() = req
-            .headers()
-            .get("x-claude-code-ide-authorization")
-            .and_then(|v| v.to_str().ok())
-            .map(str::to_owned);
+    let mut ws_stream =
+        match accept_hdr_async(stream, move |req: &Request, mut response: Response| {
+            // HeaderMap lookup is case-insensitive; the CLI sends this capitalised.
+            *presented_cb.lock().unwrap() = req
+                .headers()
+                .get("x-claude-code-ide-authorization")
+                .and_then(|v| v.to_str().ok())
+                .map(str::to_owned);
 
-        // Check if client requested MCP protocol
-        if let Some(protocols) = req.headers().get("Sec-WebSocket-Protocol") {
-            if let Ok(protocols_str) = protocols.to_str() {
-                if protocols_str.contains("mcp") {
-                    // Add MCP protocol to response
-                    response
-                        .headers_mut()
-                        .insert("Sec-WebSocket-Protocol", "mcp".parse().unwrap());
-                    debug!("MCP protocol negotiated for {}", peer_addr);
+            // Exact token, not a substring: RFC 6455 lets the server select only a
+            // protocol the client offered, and a client that gets back one it did not
+            // offer must fail the connection. "x-mcp-v2" contains "mcp" and is not it.
+            if let Some(protocols) = req.headers().get("Sec-WebSocket-Protocol") {
+                if let Ok(protocols_str) = protocols.to_str() {
+                    if protocols_str.split(',').any(|p| p.trim() == "mcp") {
+                        response
+                            .headers_mut()
+                            .insert("Sec-WebSocket-Protocol", "mcp".parse().unwrap());
+                        debug!("MCP protocol negotiated for {}", peer_addr);
+                    }
                 }
             }
-        }
-        Ok(response)
-    })
-    .await
-    {
-        Ok(ws) => {
-            debug!("WebSocket handshake completed for {}", peer_addr);
-            ws
-        }
-        Err(e) => {
-            error!("WebSocket handshake failed for {}: {}", peer_addr, e);
-            return Err(e.into());
-        }
-    };
+            Ok(response)
+        })
+        .await
+        {
+            Ok(ws) => {
+                debug!("WebSocket handshake completed for {}", peer_addr);
+                ws
+            }
+            Err(e) => {
+                error!("WebSocket handshake failed for {}: {}", peer_addr, e);
+                return Err(e.into());
+            }
+        };
 
     let authorized = {
         let guard = presented.lock().unwrap();
@@ -93,7 +95,6 @@ pub(super) async fn handle_connection(
             "Rejecting {}: missing or invalid X-Claude-Code-Ide-Authorization",
             peer_addr
         );
-        let mut ws_stream = ws_stream;
         let _ = ws_stream
             .send(Message::Close(Some(CloseFrame {
                 code: CloseCode::Policy, // 1008
@@ -136,7 +137,6 @@ async fn handle_websocket_connection(
 
     let mut lagged_before = false;
 
-    // Main message loop handling both WebSocket messages and editor events
     loop {
         tokio::select! {
             // The companion is shutting down: say so, rather than vanish.
