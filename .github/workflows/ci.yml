@@ -25,3 +25,17 @@ jobs:
       # and write lock files, so they need a real filesystem and network stack.
       - name: Test
         run: cargo test --locked --workspace
+
+  # Zed compiles the extension itself at install time, so a break here never
+  # reaches CI as a test failure -- it reaches a user as a failed install.
+  extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip2
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build extension
+        run: cargo build --locked --release -p zed-claude-ide --target wasm32-wasip2
