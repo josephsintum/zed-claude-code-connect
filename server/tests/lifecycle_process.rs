@@ -14,7 +14,7 @@ use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
 fn bin() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_claude-code-ide-server"))
+    PathBuf::from(env!("CARGO_BIN_EXE_claude-code-connect"))
 }
 
 fn lock_in(dir: &Path) -> Option<PathBuf> {

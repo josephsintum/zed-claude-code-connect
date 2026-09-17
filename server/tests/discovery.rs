@@ -4,8 +4,8 @@
 
 use std::path::Path;
 
-use claude_code_ide_server::discovery::lock_for;
-use claude_code_ide_server::lockfile::LockDir;
+use claude_code_connect::discovery::lock_for;
+use claude_code_connect::lockfile::LockDir;
 use serde_json::json;
 
 fn write_lock(dir: &Path, port: u16, ide: &str, pid: u32, folder: &str) {

@@ -49,5 +49,5 @@ leave them.
 watch it live:
 
 ```sh
-cargo run -p claude-code-ide-server --example watch -- /path/to/project
+cargo run -p claude-code-connect --example watch -- /path/to/project
 ```

@@ -11,10 +11,10 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use claude_code_ide_server::companion::{Companion, Handle};
-use claude_code_ide_server::config::Config;
-use claude_code_ide_server::lockfile::LockDir;
-use claude_code_ide_server::selection::EventBus;
+use claude_code_connect::companion::{Companion, Handle};
+use claude_code_connect::config::Config;
+use claude_code_connect::lockfile::LockDir;
+use claude_code_connect::selection::EventBus;
 
 pub use fake_cli::FakeCli;
 pub use fake_zed::FakeZed;

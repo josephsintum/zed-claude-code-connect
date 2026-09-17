@@ -1,5 +1,5 @@
 [package]
-name = "claude-code-ide"
+name = "claude-code-connect-extension"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,4 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 zed_extension_api = "0.7.0"
-claude-code-ide-resolve = { path = "../resolve" }
+claude-code-connect-resolve = { path = "../resolve" }

@@ -6,9 +6,9 @@
 
 use serde_json::Value;
 
-use claude_code_ide_server::companion::{Companion, Handle};
-use claude_code_ide_server::config::Config;
-use claude_code_ide_server::lockfile::{LockDir, LockFile, RawLock};
+use claude_code_connect::companion::{Companion, Handle};
+use claude_code_connect::config::Config;
+use claude_code_connect::lockfile::{LockDir, LockFile, RawLock};
 
 /// Boot a companion whose lock directory is `dir`; returns the lock path, the
 /// port, and the handle that must stay alive for the lock to exist.

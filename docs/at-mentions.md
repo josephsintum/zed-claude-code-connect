@@ -19,7 +19,7 @@ of a selection, so a task passing coordinates could not tell whether the row it 
 given is the anchor or the head. Reading the tracked selection avoids the question.
 
 ```
-keypress ──> Zed task ──> claude-code-ide-server at-mention
+keypress ──> Zed task ──> claude-code-connect at-mention
                               │  discovers the companion via ~/.claude/ide/*.lock
                               ▼
                           companion ──at_mentioned──> claude
@@ -32,8 +32,8 @@ keypress ──> Zed task ──> claude-code-ide-server at-mention
 It is the same binary as the server, with a subcommand:
 
 ```sh
-cargo build --release -p claude-code-ide-server
-cp target/release/claude-code-ide-server ~/.local/bin/
+cargo build --release -p claude-code-connect
+cp target/release/claude-code-connect ~/.local/bin/
 ```
 
 ### 2. Add the task
@@ -43,7 +43,7 @@ In `~/.config/zed/tasks.json`, append to the array:
 ```json
 {
   "label": "Claude: mention selection",
-  "command": "claude-code-ide-server",
+  "command": "claude-code-connect",
   "args": ["at-mention", "--worktree", "$ZED_WORKTREE_ROOT"],
   "use_new_terminal": false,
   "allow_concurrent_runs": true,
@@ -80,7 +80,7 @@ for a conflict first with `zed: open default keymap` — `cmd-shift-a` and
 
 ```sh
 # From inside the project, with it open in Zed:
-claude-code-ide-server at-mention --worktree "$PWD"
+claude-code-connect at-mention --worktree "$PWD"
 ```
 
 Select something in Zed first. The CLI's prompt should gain `@path#L12-20`. Zed
@@ -88,7 +88,7 @@ itself shows nothing: the task runs hidden and the companion has no way to post 
 message back into the editor. To watch the wire directly:
 
 ```sh
-cargo run -p claude-code-ide-server --example watch -- /path/to/project
+cargo run -p claude-code-connect --example watch -- /path/to/project
 ```
 
 ## If nothing happens

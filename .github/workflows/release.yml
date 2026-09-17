@@ -15,16 +15,16 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             os: macos-latest
-            asset: claude-code-ide-server-macos-aarch64
+            asset: claude-code-connect-macos-aarch64
           - target: x86_64-apple-darwin
             os: macos-latest
-            asset: claude-code-ide-server-macos-x86_64
+            asset: claude-code-connect-macos-x86_64
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            asset: claude-code-ide-server-linux-x86_64
+            asset: claude-code-connect-linux-x86_64
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-24.04-arm
-            asset: claude-code-ide-server-linux-aarch64
+            asset: claude-code-connect-linux-aarch64
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -35,7 +35,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build
-        run: cargo build --locked --release --target ${{ matrix.target }} -p claude-code-ide-server
+        run: cargo build --locked --release --target ${{ matrix.target }} -p claude-code-connect
 
       # The extension matches assets by exact name -- see asset_name in
       # resolve/src/lib.rs. A rename here silently breaks
@@ -43,7 +43,7 @@ jobs:
       # function. asset_names_match_the_release_workflow reads this file and
       # fails if they drift.
       - name: Stage asset
-        run: cp target/${{ matrix.target }}/release/claude-code-ide-server ${{ matrix.asset }}
+        run: cp target/${{ matrix.target }}/release/claude-code-connect ${{ matrix.asset }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -61,5 +61,5 @@ jobs:
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
-          files: claude-code-ide-server-*
+          files: claude-code-connect-*
           generate_release_notes: true

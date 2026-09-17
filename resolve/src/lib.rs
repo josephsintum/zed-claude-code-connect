@@ -28,10 +28,10 @@ pub enum Arch {
 /// workflow and checks the two agree.
 pub fn asset_name(os: Os, arch: Arch) -> Result<&'static str, String> {
     match (os, arch) {
-        (Os::Mac, Arch::Aarch64) => Ok("claude-code-ide-server-macos-aarch64"),
-        (Os::Mac, Arch::X86_64) => Ok("claude-code-ide-server-macos-x86_64"),
-        (Os::Linux, Arch::X86_64) => Ok("claude-code-ide-server-linux-x86_64"),
-        (Os::Linux, Arch::Aarch64) => Ok("claude-code-ide-server-linux-aarch64"),
+        (Os::Mac, Arch::Aarch64) => Ok("claude-code-connect-macos-aarch64"),
+        (Os::Mac, Arch::X86_64) => Ok("claude-code-connect-macos-x86_64"),
+        (Os::Linux, Arch::X86_64) => Ok("claude-code-connect-linux-x86_64"),
+        (Os::Linux, Arch::Aarch64) => Ok("claude-code-connect-linux-aarch64"),
         (Os::Windows, _) => Err("Windows is not currently supported".to_string()),
         (os, arch) => Err(format!("Unsupported platform: {os:?}-{arch:?}")),
     }
@@ -42,7 +42,7 @@ pub fn asset_name(os: Os, arch: Arch) -> Result<&'static str, String> {
 pub const DOWNLOAD_SUFFIX: &str = ".downloading";
 
 /// Name a downloaded release is stored under: the asset name plus its version,
-/// e.g. `claude-code-ide-server-macos-aarch64-v0.1.0`.
+/// e.g. `claude-code-connect-macos-aarch64-v0.1.0`.
 pub fn versioned_name(prefix: &str, version: &str) -> String {
     format!("{prefix}-{version}")
 }
@@ -92,7 +92,7 @@ pub fn fallback_binary(prefix: &str, names: impl IntoIterator<Item = String>) ->
 mod tests {
     use super::*;
 
-    const PREFIX: &str = "claude-code-ide-server-macos-aarch64";
+    const PREFIX: &str = "claude-code-connect-macos-aarch64";
 
     fn names(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
@@ -152,14 +152,14 @@ mod tests {
             PREFIX,
             names(&[
                 PREFIX,
-                "claude-code-ide-server-macos-aarch64-v0.1.0",
-                "claude-code-ide-server-macos-x86_64-v0.1.0",
+                "claude-code-connect-macos-aarch64-v0.1.0",
+                "claude-code-connect-macos-x86_64-v0.1.0",
                 "unrelated",
             ]),
         );
         assert_eq!(
             got,
-            names(&[PREFIX, "claude-code-ide-server-macos-aarch64-v0.1.0"])
+            names(&[PREFIX, "claude-code-connect-macos-aarch64-v0.1.0"])
         );
     }
 
@@ -169,7 +169,7 @@ mod tests {
         // that matters: only a "-v" version suffix counts.
         assert!(!is_versioned_binary(
             PREFIX,
-            "claude-code-ide-server-macos-aarch64-foo"
+            "claude-code-connect-macos-aarch64-foo"
         ));
     }
 
@@ -179,13 +179,13 @@ mod tests {
             PREFIX,
             names(&[
                 PREFIX,
-                "claude-code-ide-server-macos-aarch64-v0.1.0",
-                "claude-code-ide-server-macos-aarch64-v0.2.0",
+                "claude-code-connect-macos-aarch64-v0.1.0",
+                "claude-code-connect-macos-aarch64-v0.2.0",
             ]),
         );
         assert_eq!(
             got.as_deref(),
-            Some("claude-code-ide-server-macos-aarch64-v0.2.0")
+            Some("claude-code-connect-macos-aarch64-v0.2.0")
         );
         assert_eq!(
             fallback_binary(PREFIX, names(&[PREFIX])).as_deref(),

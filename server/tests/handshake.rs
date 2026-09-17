@@ -13,10 +13,10 @@ use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::protocol::frame::coding::CloseCode;
 use tokio_tungstenite::tungstenite::Message;
 
-use claude_code_ide_server::companion::{Companion, Handle};
-use claude_code_ide_server::config::Config;
-use claude_code_ide_server::lockfile::LockDir;
-use claude_code_ide_server::selection::Selection;
+use claude_code_connect::companion::{Companion, Handle};
+use claude_code_connect::config::Config;
+use claude_code_connect::lockfile::LockDir;
+use claude_code_connect::selection::Selection;
 
 /// A running companion plus everything a client needs to reach it. Holding the
 /// handle keeps it running; dropping it at the end of the test stops it.

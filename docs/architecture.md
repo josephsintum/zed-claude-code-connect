@@ -57,7 +57,7 @@ the companion can bind a port. Being a language server, it receives editor state
                            │ spawns, then speaks LSP over stdio
                            ▼
               ┌────────────────────────────┐
-              │  claude-code-ide-server     │   one per Zed window
+              │  claude-code-connect     │   one per Zed window
               │  (native, ~2600 lines)     │
               │                            │
               │  • LSP server  (from Zed)  │
@@ -83,7 +83,7 @@ the binary in three tiers:
    version-named path in the extension's work directory. The resolved path is
    remembered for the session, so the GitHub API is asked once, not once per
    worktree.
-3. `claude-code-ide-server` from `PATH`, resolved to an absolute path with
+3. `claude-code-connect` from `PATH`, resolved to an absolute path with
    `worktree.which`. A bare name cannot work here: Zed joins a relative command
    onto the extension's work directory rather than searching `PATH`.
 
@@ -91,7 +91,7 @@ Installing the extension does **not** install the server. Zed installs only the
 `.wasm` and `extension.toml`; the binary arrives lazily the first time a matching
 file is opened. This is the standard pattern for Zed language-server extensions.
 
-### `claude-code-ide-server` — the companion crate
+### `claude-code-connect` — the companion crate
 
 A native binary with two subcommands. `serve` runs the LSP server on stdio and
 the MCP server on a loopback socket, and is what the extension launches (`hybrid`
@@ -290,7 +290,7 @@ a command, so that is the route:
 
 ```
 keypress
-   └─> Zed task: `claude-code-ide-server at-mention --worktree $ZED_WORKTREE_ROOT`
+   └─> Zed task: `claude-code-connect at-mention --worktree $ZED_WORKTREE_ROOT`
           │
           ├─ scan ~/.claude/ide/*.lock for our live companion covering that path
           ├─ connect with the token from that lock

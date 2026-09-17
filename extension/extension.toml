@@ -1,4 +1,4 @@
-id = "claude-code-ide"
+id = "claude-code-connect"
 name = "Claude Code Connect"
 version = "0.1.0"
 schema_version = 1
@@ -6,8 +6,8 @@ authors = ["Joseph Sintum <josephsintum@gmail.com>"]
 description = "Connects the Claude Code CLI in your terminal to the file and selection you have open in Zed."
 repository = "https://github.com/josephsintum/zed-claude-ide"
 
-[language_servers.claude-code-ide-server]
-name = "Claude Code Server"
+[language_servers.claude-code-connect]
+name = "Claude Code Connect"
 languages = [
     # Common files (for early activation)
     "Plain Text",
@@ -65,7 +65,7 @@ languages = [
     "Protobuf",
 ]
 
-[language_servers.claude-code-ide-server.language_ids]
+[language_servers.claude-code-connect.language_ids]
 # Common files
 "Plain Text" = "plaintext"
 # Systems programming

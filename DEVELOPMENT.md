@@ -45,7 +45,7 @@ rustup target add wasm32-wasip2
 **Changing the companion** — the common case:
 
 ```sh
-cargo build --release -p claude-code-ide-server
+cargo build --release -p claude-code-connect
 ```
 
 Then `editor: restart language server` in Zed. No extension reinstall, no Zed
@@ -66,8 +66,8 @@ then point Zed at your local build in `~/.config/zed/settings.json`:
 
 ```json
 "lsp": {
-  "claude-code-ide-server": {
-    "binary": { "path": "/abs/path/to/target/release/claude-code-ide-server" }
+  "claude-code-connect": {
+    "binary": { "path": "/abs/path/to/target/release/claude-code-connect" }
   }
 }
 ```
@@ -89,8 +89,8 @@ itself, so a break there would otherwise only appear when a user installs it.
 ## Seeing what is on the wire
 
 ```sh
-cargo run -p claude-code-ide-server --example watch                  # list companions
-cargo run -p claude-code-ide-server --example watch -- /path/to/proj # attach
+cargo run -p claude-code-connect --example watch                  # list companions
+cargo run -p claude-code-connect --example watch -- /path/to/proj # attach
 ```
 
 This connects exactly as the CLI does and prints each notification with timestamps

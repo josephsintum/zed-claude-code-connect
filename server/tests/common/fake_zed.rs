@@ -12,8 +12,8 @@ use serde_json::{json, Value};
 use tokio::sync::mpsc;
 use tokio::time::timeout;
 
-use claude_code_ide_server::lsp::serve_lsp;
-use claude_code_ide_server::selection::SelectionTracker;
+use claude_code_connect::lsp::serve_lsp;
+use claude_code_connect::selection::SelectionTracker;
 
 pub struct FakeZed {
     /// Our end of the pipe the server reads as stdin. Dropping it is EOF there.

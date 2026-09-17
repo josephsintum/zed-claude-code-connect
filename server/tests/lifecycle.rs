@@ -8,9 +8,9 @@ mod common;
 
 use std::time::Duration;
 
-use claude_code_ide_server::companion::Companion;
-use claude_code_ide_server::config::Config;
-use claude_code_ide_server::lockfile::LockDir;
+use claude_code_connect::companion::Companion;
+use claude_code_connect::config::Config;
+use claude_code_connect::lockfile::LockDir;
 use tokio::time::timeout;
 
 fn config(dir: &tempfile::TempDir) -> Config {

@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::Path;
 
-use claude_code_ide_resolve as resolve;
+use claude_code_connect_resolve as resolve;
 use zed_extension_api::{
     current_platform, download_file, latest_github_release, make_file_executable,
     set_language_server_installation_status, settings::LspSettings, Architecture, Command,
@@ -17,7 +17,7 @@ use zed_extension_api::{
 
 /// Must match the `[language_servers.*]` key in extension.toml, and is the
 /// key users put under `"lsp"` in settings.json to override the binary.
-const SERVER_ID: &str = "claude-code-ide-server";
+const SERVER_ID: &str = "claude-code-connect";
 
 /// Releases are downloaded from here. Asset names in that release must match
 /// `asset_name` exactly; a test reads the workflow and fails if they drift.
@@ -63,7 +63,7 @@ impl Extension for ClaudeCodeExtension {
             });
 
         eprintln!(
-            "[claude-code-ide] starting {command} for {}",
+            "[claude-code-connect] starting {command} for {}",
             worktree.root_path()
         );
         Ok(Command {
@@ -79,7 +79,7 @@ impl ClaudeCodeExtension {
     ///   1. An explicit path in Zed's `lsp` settings -- the development loop.
     ///   2. The path resolved earlier in this session.
     ///   3. A cached or freshly downloaded GitHub release asset.
-    ///   4. `claude-code-ide-server` on PATH, as an absolute path from `which`.
+    ///   4. `claude-code-connect` on PATH, as an absolute path from `which`.
     fn server_binary(
         &mut self,
         language_server_id: &LanguageServerId,
@@ -89,7 +89,7 @@ impl ClaudeCodeExtension {
             .ok()
             .and_then(|s| s.binary.and_then(|b| b.path))
         {
-            eprintln!("[claude-code-ide] using binary from Zed settings: {path}");
+            eprintln!("[claude-code-connect] using binary from Zed settings: {path}");
             return Ok(path);
         }
 
@@ -104,11 +104,11 @@ impl ClaudeCodeExtension {
             Err(release_error) => {
                 // `which` yields an absolute path, which is the only kind Zed can
                 // run from here: a relative command is joined onto the extension's
-                // work directory, so a bare "claude-code-ide-server" never resolved.
+                // work directory, so a bare "claude-code-connect" never resolved.
                 match worktree.which(SERVER_ID) {
                     Some(path) => {
                         eprintln!(
-                            "[claude-code-ide] {release_error}; using {path} from PATH instead"
+                            "[claude-code-connect] {release_error}; using {path} from PATH instead"
                         );
                         path
                     }
@@ -212,7 +212,7 @@ fn release_binary(language_server_id: &LanguageServerId) -> Result<String> {
     }
 }
 
-/// Release asset name for this machine, e.g. `claude-code-ide-server-macos-aarch64`.
+/// Release asset name for this machine, e.g. `claude-code-connect-macos-aarch64`.
 fn asset_prefix() -> Result<&'static str> {
     // Zed's platform detection, not env::consts, which would say wasm32.
     let (os, arch) = current_platform();
@@ -245,9 +245,9 @@ fn existing_binaries(prefix: &str) -> Vec<String> {
 
 fn fallback_binary(prefix: &str) -> Option<String> {
     let path = resolve::fallback_binary(prefix, existing_binaries(prefix))?;
-    eprintln!("[claude-code-ide] using cached binary {path}");
+    eprintln!("[claude-code-connect] using cached binary {path}");
     if let Err(e) = make_file_executable(&path) {
-        eprintln!("[claude-code-ide] could not make {path} executable: {e}");
+        eprintln!("[claude-code-connect] could not make {path} executable: {e}");
     }
     Some(path)
 }

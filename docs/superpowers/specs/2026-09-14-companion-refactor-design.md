@@ -1,6 +1,6 @@
 # Companion refactor: typed core, two adapters, one lifecycle
 
-Design record for the staged refactor of `claude-code-ide-server` carried out on
+Design record for the staged refactor of `claude-code-connect` carried out on
 2026-09-14. The architecture in [docs/architecture.md](../../architecture.md) is
 unchanged; this records why the code was restructured, what was decided, and how
 each stage was verified.

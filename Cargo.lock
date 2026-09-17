@@ -162,19 +162,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
-name = "claude-code-ide"
-version = "0.1.0"
-dependencies = [
- "claude-code-ide-resolve",
- "zed_extension_api",
-]
-
-[[package]]
-name = "claude-code-ide-resolve"
-version = "0.1.0"
-
-[[package]]
-name = "claude-code-ide-server"
+name = "claude-code-connect"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -195,6 +183,18 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
 ]
+
+[[package]]
+name = "claude-code-connect-extension"
+version = "0.1.0"
+dependencies = [
+ "claude-code-connect-resolve",
+ "zed_extension_api",
+]
+
+[[package]]
+name = "claude-code-connect-resolve"
+version = "0.1.0"
 
 [[package]]
 name = "colorchoice"
