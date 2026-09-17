@@ -7,15 +7,10 @@
 //! diagnostics here -- so the model sees no IDE tools from us at all. The tools
 //! below are what the CLI itself may call.
 
-use std::path::{Path, PathBuf};
-
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tracing::debug;
-
-use super::wire::selection_tool_payload;
-use crate::selection::EventBus;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MCPRequest {
@@ -110,18 +105,22 @@ pub struct TextContent {
 /// Holds no selection state of its own: the tools read the bus's `latest`,
 /// which is the same value every connection is sent, so a client that connects
 /// mid-session can answer for the selection it never saw arrive.
+/// Answers the MCP request half of a connection. It holds no editor state: with
+/// no tools left to serve, every request is answered from the protocol alone.
 pub struct Dispatcher {
     pub(crate) capabilities: ServerCapabilities,
-    pub(crate) bus: EventBus,
-    pub(crate) worktree: PathBuf,
+}
+
+impl Default for Dispatcher {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Dispatcher {
-    pub fn new(worktree: PathBuf, bus: EventBus) -> Self {
+    pub fn new() -> Self {
         Self {
             capabilities: create_capabilities(),
-            bus,
-            worktree,
         }
     }
 }
@@ -180,45 +179,18 @@ impl Dispatcher {
         }))
     }
 
+    /// Nothing, deliberately. Verified against the shipped CLI (2.1.274):
+    /// `getCurrentSelection`, `getLatestSelection` and `getWorkspaceFolders`
+    /// appear zero times in the binary, so it never calls them. Every IDE tool the
+    /// CLI does invoke goes through one helper, and that helper is only ever
+    /// passed `openDiff`, `close_tab` and `closeAllDiffTabs` -- none of which Zed
+    /// can serve (architecture.md §11).
+    ///
+    /// The feature was never the tools. It is `selection_changed` and
+    /// `at_mentioned`, which are notifications.
     async fn handle_tools_list(&self) -> Result<Value> {
         debug!("Listing available tools");
-
-        // Only list tools that are actually implemented and working
-        let tools: Vec<Tool> = vec![
-            Tool {
-                name: "getCurrentSelection".to_string(),
-                description: Some(
-                    "Get the current text selection in the active editor".to_string(),
-                ),
-                input_schema: serde_json::json!({
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }),
-            },
-            Tool {
-                name: "getLatestSelection".to_string(),
-                description: Some("Get the most recent text selection".to_string()),
-                input_schema: serde_json::json!({
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }),
-            },
-            Tool {
-                name: "getWorkspaceFolders".to_string(),
-                description: Some("Get the workspace folders open in the IDE".to_string()),
-                input_schema: serde_json::json!({
-                    "type": "object",
-                    "properties": {},
-                    "required": []
-                }),
-            },
-        ];
-
-        Ok(serde_json::json!({
-            "tools": tools
-        }))
+        Ok(serde_json::json!({ "tools": [] }))
     }
 
     async fn handle_tools_call(&self, params: Option<Value>) -> Result<Value> {
@@ -236,7 +208,7 @@ impl Dispatcher {
         debug!("Calling tool: {}", tool_name);
         debug!("Tool arguments: {}", arguments);
 
-        let content = dispatch_tool(tool_name, &self.bus, &self.worktree);
+        let content = dispatch_tool(tool_name);
 
         Ok(serde_json::json!({
             "content": content,
@@ -295,18 +267,15 @@ pub fn create_capabilities() -> ServerCapabilities {
 
 // ---- tools ----
 
-fn dispatch_tool(tool_name: &str, bus: &EventBus, worktree: &Path) -> Vec<TextContent> {
+fn dispatch_tool(tool_name: &str) -> Vec<TextContent> {
     match tool_name {
-        "getWorkspaceFolders" => get_workspace_folders(worktree),
-        "getCurrentSelection" => selection_tool(bus, "No active editor found"),
-        "getLatestSelection" => selection_tool(bus, "No selection available"),
         // Not advertised (the companion cannot see other servers' diagnostics),
         // but a direct call still gets a well-formed reply rather than -32601.
         "getDiagnostics" => text(serde_json::json!({"diagnostics": []})),
-        // Everything else the CLI might try -- openDiff, openFile, saveDocument,
-        // close_tab and friends -- needs an editor surface Zed exposes to
-        // extensions in no form. Say so, rather than fake a result: a faked
-        // FILE_SAVED from openDiff would auto-approve every edit unreviewed.
+        // The three the CLI really invokes -- openDiff, close_tab,
+        // closeAllDiffTabs -- need an editor surface Zed exposes to extensions
+        // in no form. Say so, rather than fake a result: a faked FILE_SAVED
+        // from openDiff would auto-approve every edit unreviewed.
         _ => text(Value::String(format!(
             "NOT_SUPPORTED: Tool '{tool_name}' is not available in Zed integration. \
              File operations should be performed directly."
@@ -323,32 +292,4 @@ fn text(v: Value) -> Vec<TextContent> {
         type_: "text".to_string(),
         text,
     }]
-}
-
-/// Both selection tools answer from the bus's latest selection. They differ only
-/// in the message for "nothing yet"; the VS Code extension distinguishes a lost
-/// editor focus, which this companion cannot observe.
-fn selection_tool(bus: &EventBus, missing: &str) -> Vec<TextContent> {
-    let latest = bus.latest();
-    text(selection_tool_payload(latest.as_deref(), missing))
-}
-
-fn get_workspace_folders(worktree: &Path) -> Vec<TextContent> {
-    let path = worktree.to_string_lossy().to_string();
-    text(serde_json::json!({
-        "success": true,
-        "folders": [{
-            "name": worktree
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("workspace"),
-            // A real file URI, percent-encoded. format!("file://{}") left a
-            // space or non-ASCII byte raw, which is not a URI at all.
-            "uri": lsp_types::Url::from_file_path(worktree)
-                .map(|u| u.to_string())
-                .unwrap_or_else(|_| format!("file://{}", path)),
-            "path": path
-        }],
-        "rootPath": path
-    }))
 }

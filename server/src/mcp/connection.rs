@@ -2,7 +2,6 @@
 //! and pushes editor events until the client leaves or the companion stops.
 
 use std::net::SocketAddr;
-use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
@@ -30,7 +29,6 @@ pub(super) async fn handle_connection(
     peer_addr: SocketAddr,
     auth_token: String,
     bus: EventBus,
-    worktree: PathBuf,
     cancel: CancellationToken,
 ) -> Result<()> {
     // The handshake callback is the only place the request headers are visible, so
@@ -106,14 +104,13 @@ pub(super) async fn handle_connection(
     }
 
     debug!("Authorized WebSocket connection from {}", peer_addr);
-    handle_websocket_connection(ws_stream, peer_addr, bus, worktree, cancel).await
+    handle_websocket_connection(ws_stream, peer_addr, bus, cancel).await
 }
 
 async fn handle_websocket_connection(
     ws_stream: WebSocketStream<TcpStream>,
     peer_addr: SocketAddr,
     bus: EventBus,
-    worktree: PathBuf,
     cancel: CancellationToken,
 ) -> Result<()> {
     let (mut ws_sender, mut ws_receiver) = ws_stream.split();
@@ -122,7 +119,7 @@ async fn handle_websocket_connection(
     // selection published in between is seen twice, which the CLI tolerates; in
     // the other order it would be seen never.
     let mut events = Some(bus.subscribe());
-    let mcp_handler = Dispatcher::new(worktree, bus.clone());
+    let mcp_handler = Dispatcher::new();
 
     info!("WebSocket connection established with {}", peer_addr);
 

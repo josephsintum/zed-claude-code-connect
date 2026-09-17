@@ -72,7 +72,6 @@ impl Companion {
         tasks.spawn(mcp::server::serve(
             listener,
             auth_token.clone(),
-            config.worktree.clone(),
             bus.clone(),
             cancel.clone(),
         ));

@@ -1,8 +1,6 @@
 //! The MCP server's socket: binding the loopback port the CLI will dial, and
 //! accepting connections until told to stop.
 
-use std::path::PathBuf;
-
 use anyhow::{anyhow, Result};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
@@ -76,7 +74,6 @@ pub(crate) async fn bind(preferred_port: Option<u16>) -> Result<(TcpListener, u1
 pub(crate) async fn serve(
     listener: TcpListener,
     auth_token: String,
-    worktree: PathBuf,
     bus: EventBus,
     cancel: CancellationToken,
 ) {
@@ -132,7 +129,6 @@ pub(crate) async fn serve(
             peer_addr,
             auth_token.clone(),
             bus.clone(),
-            worktree.clone(),
             cancel.child_token(),
         ));
     }

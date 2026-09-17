@@ -392,13 +392,16 @@ async fn an_empty_selection_mentions_the_file_without_a_range() {
     }
 }
 
-/// The advertised tool set is a contract with the CLI, and the CLI shows the model
-/// only two of the IDE tools -- executeCode and getDiagnostics. Neither belongs
-/// here: there is no Jupyter kernel, and Zed does not forward other language
-/// servers' diagnostics to an extension, so getDiagnostics could only ever report
-/// "no problems found" to the model.
+/// Empty, and that is the whole point. Checked against the shipped CLI (2.1.274):
+/// `getCurrentSelection`, `getLatestSelection` and `getWorkspaceFolders` appear
+/// zero times in the binary. Every IDE tool the CLI does call goes through one
+/// helper, only ever passed `openDiff`, `close_tab` and `closeAllDiffTabs` --
+/// none of which Zed can serve.
+///
+/// If a future CLI grows a tool this companion can answer, this test is where the
+/// decision to add it back gets recorded.
 #[tokio::test]
-async fn tools_list_advertises_exactly_what_is_implemented() {
+async fn no_tools_are_advertised_because_the_cli_calls_none_of_them() {
     let h = start().await;
     let (mut ws, _) = tokio_tungstenite::connect_async(request(h.port, Some(&h.token)))
         .await
@@ -417,22 +420,10 @@ async fn tools_list_advertises_exactly_what_is_implemented() {
         }
     };
 
-    let mut names: Vec<&str> = resp["result"]["tools"]
-        .as_array()
-        .expect("tools array")
-        .iter()
-        .map(|t| t["name"].as_str().unwrap())
-        .collect();
-    names.sort_unstable();
-
     assert_eq!(
-        names,
-        vec![
-            "getCurrentSelection",
-            "getLatestSelection",
-            "getWorkspaceFolders"
-        ],
-        "every advertised tool must be one this server can actually answer"
+        resp["result"]["tools"],
+        json!([]),
+        "advertising a tool the CLI never calls is surface with no user"
     );
 }
 
@@ -452,51 +443,6 @@ async fn start_with_tiny_event_ring() -> Handle {
     Companion::start(cfg(ide_dir().to_path_buf()).with_event_capacity(2))
         .await
         .expect("companion starts")
-}
-
-async fn call_tool(
-    ws: &mut tokio_tungstenite::WebSocketStream<
-        tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>,
-    >,
-    id: i64,
-    name: &str,
-) -> Value {
-    send(
-        ws,
-        json!({"jsonrpc": "2.0", "id": id, "method": "tools/call",
-                    "params": {"name": name, "arguments": {}}}),
-    )
-    .await;
-    loop {
-        let msg = recv_json(ws).await;
-        if msg["id"] == json!(id) {
-            // Tool payloads come back as a JSON string inside a text content block.
-            let inner = msg["result"]["content"][0]["text"].as_str().unwrap();
-            return serde_json::from_str(inner).unwrap();
-        }
-    }
-}
-
-/// A client that attaches after a selection has already happened must be able to
-/// answer for it immediately. The MCP state used to start empty and be filled by a
-/// subscription that began at the channel's tail, so a mid-session client was told
-/// "No active editor found" until the user next moved the cursor.
-#[tokio::test]
-async fn a_new_connection_can_report_the_selection_it_missed() {
-    let h = start_with_notifications().await;
-    let (port, token, bus) = (h.port(), h.auth_token().to_string(), h.bus().clone());
-
-    bus.publish_selection(selection("/tmp/seen.rs", "fn already_selected() {}"));
-    tokio::time::sleep(Duration::from_millis(100)).await;
-
-    let (mut ws, _) = tokio_tungstenite::connect_async(request(port, Some(&token)))
-        .await
-        .unwrap();
-
-    let got = call_tool(&mut ws, 1, "getCurrentSelection").await;
-    assert_eq!(got["success"], true, "fresh connection saw: {got}");
-    assert_eq!(got["text"], "fn already_selected() {}");
-    assert_eq!(got["filePath"], "/tmp/seen.rs");
 }
 
 /// The replay a new client gets comes from the `watch` cell, not the broadcast ring:
@@ -701,31 +647,6 @@ async fn a_malformed_request_without_an_id_draws_nothing() {
 
     let quiet = timeout(Duration::from_millis(400), ws.next()).await;
     assert!(quiet.is_err(), "must not answer a notification: {quiet:?}");
-}
-
-/// `getWorkspaceFolders` returns a `uri` field. A path with a space must come back
-/// percent-encoded, as `Url::from_file_path` produces; `format!("file://{}")` does
-/// not encode and yields an invalid URI -- the same defect already fixed for
-/// selection paths in the LSP handler.
-#[tokio::test]
-async fn workspace_folder_uri_is_percent_encoded() {
-    let dir = ide_dir();
-    let worktree = dir.join("My Project");
-    std::fs::create_dir_all(&worktree).unwrap();
-
-    let h = Companion::start(cfg(worktree.clone())).await.unwrap();
-    let (port, token) = (h.port(), h.auth_token().to_string());
-
-    let (mut ws, _) = tokio_tungstenite::connect_async(request(port, Some(&token)))
-        .await
-        .unwrap();
-    let got = call_tool(&mut ws, 1, "getWorkspaceFolders").await;
-    let uri = got["folders"][0]["uri"].as_str().unwrap();
-    assert!(
-        uri.starts_with("file:///") && uri.contains("My%20Project"),
-        "uri must be a valid percent-encoded file URI, got {uri}"
-    );
-    assert_eq!(got["folders"][0]["path"], worktree.to_str().unwrap());
 }
 
 /// The exact key set of `selection_changed` is what the CLI parses. Pinned before

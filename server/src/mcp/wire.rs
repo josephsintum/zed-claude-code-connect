@@ -71,17 +71,3 @@ pub fn at_mentioned(mention: &Mention) -> JsonRpcNotification {
     }
     notification("at_mentioned", Value::Object(params))
 }
-
-/// The payload of `getCurrentSelection` / `getLatestSelection`.
-pub fn selection_tool_payload(latest: Option<&Selection>, missing: &str) -> Value {
-    match latest {
-        Some(selection) => {
-            let mut v = selection_params(selection);
-            v.as_object_mut()
-                .expect("selection_params is an object")
-                .insert("success".to_string(), Value::Bool(true));
-            v
-        }
-        None => json!({"success": false, "message": missing}),
-    }
-}
