@@ -73,6 +73,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
+          # This job downloads artefacts and never checks the repository out, so
+          # `gh` has no git remote to infer the repository from and must be told.
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 

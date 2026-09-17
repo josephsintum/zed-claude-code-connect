@@ -48,25 +48,12 @@ Zed maintainers have acknowledged this class of integration as something that
 
 ## Install
 
-Requires Rust and the `wasm32-wasip2` target:
+In Zed: `cmd-shift-p` → `zed: install dev extension` → select the `extension/`
+directory (the one containing `extension.toml`).
 
-```sh
-rustup target add wasm32-wasip2
-cargo build --release -p claude-code-connect
-```
-
-Then in Zed: `cmd-shift-p` → `zed: install dev extension` → select the
-`extension/` directory (the one containing `extension.toml`).
-
-Point the extension at your local build in `~/.config/zed/settings.json`:
-
-```json
-"lsp": {
-  "claude-code-connect": {
-    "binary": { "path": "/absolute/path/to/target/release/claude-code-connect" }
-  }
-}
-```
+That is all. The extension downloads the companion binary for your platform from
+this repository's latest release, caches it, and runs it. Nothing to build, and
+no Rust toolchain needed.
 
 Open a file in a project. The companion starts and writes
 `~/.claude/ide/<port>.lock`. Then, in your terminal, `cd` into that project and run
@@ -81,6 +68,27 @@ export CLAUDE_CODE_AUTO_CONNECT_IDE=true
 Do **not** set `FORCE_CODE_TERMINAL`. It makes the CLI believe it is running inside
 an IDE's own terminal, which turns on a check that the lock file's `pid` be an
 ancestor of the CLI process — never true from a separate terminal.
+
+### Running your own build
+
+Only needed if you are changing the companion. Requires Rust:
+
+```sh
+cargo build --release -p claude-code-connect
+```
+
+Then point the extension at it in `~/.config/zed/settings.json`:
+
+```json
+"lsp": {
+  "claude-code-connect": {
+    "binary": { "path": "/absolute/path/to/target/release/claude-code-connect" }
+  }
+}
+```
+
+This setting wins over the download, so **remove it** when you want to test what a
+normal install does.
 
 ## How discovery works
 
@@ -107,10 +115,119 @@ projects can be open at once and each `claude` attaches to the right one.
 
 ## At-mentions
 
-VS Code binds `cmd-alt-k` to drop `@path#L12-20` into the prompt. Zed extensions
-cannot register commands or keybindings at `schema_version = 1`, so this is
-configured on your side rather than shipped by the extension. See
-[`docs/at-mentions.md`](docs/at-mentions.md).
+Press a key, and the file and lines you have selected in Zed are pinned into the
+`claude` prompt as `@path/to/file.rs#L12-20`. Unlike the live selection, a mention
+**stays** — press it in several files and they stack up.
+
+Zed extensions cannot register commands or keybindings at `schema_version = 1`.
+A Zed *task* can run a command and be bound to a key, so the hotkey is three
+pieces of your own config rather than something the extension ships.
+
+### 1. Put the helper on your PATH
+
+It is the same binary the extension runs, with a subcommand. The extension keeps
+its copy under a versioned name in its own work directory, so fetch your own:
+
+```sh
+# pick the asset for your platform:
+#   claude-code-connect-macos-aarch64    Apple silicon
+#   claude-code-connect-macos-x86_64     Intel Mac
+#   claude-code-connect-linux-x86_64
+#   claude-code-connect-linux-aarch64
+curl -L -o ~/.local/bin/claude-code-connect \
+  https://github.com/josephsintum/zed-claude-code-connect/releases/latest/download/claude-code-connect-macos-aarch64
+chmod +x ~/.local/bin/claude-code-connect
+```
+
+Or from source, if you have Rust:
+
+```sh
+cargo build --release -p claude-code-connect
+cp target/release/claude-code-connect ~/.local/bin/
+```
+
+### 2. Add the task
+
+`~/.config/zed/tasks.json` — append to the array:
+
+```json
+{
+  "label": "Claude: mention selection",
+  "command": "claude-code-connect",
+  "args": ["at-mention", "--worktree", "$ZED_WORKTREE_ROOT"],
+  "use_new_terminal": false,
+  "allow_concurrent_runs": true,
+  "reveal": "never",
+  "hide": "always",
+  "save": "none",
+  "show_summary": false,
+  "show_command": false
+}
+```
+
+`reveal: never` and `hide: always` stop it stealing focus or leaving a terminal tab
+behind. `save: none` matters: the companion reads your *unsaved* buffer, so there
+is nothing to flush first.
+
+### 3. Bind a key
+
+`~/.config/zed/keymap.json` — append to the array:
+
+```json
+{
+  "context": "Editor && mode == full",
+  "bindings": {
+    "cmd-alt-k": ["task::Spawn", { "task_name": "Claude: mention selection" }]
+  }
+}
+```
+
+`cmd-alt-k` mirrors VS Code. If your `base_keymap` is JetBrains or Sublime, check
+for a conflict first: `zed: open default keymap`, then search for the chord.
+
+Restart Zed — tasks and keymaps are read at startup.
+
+### Using it
+
+Select something, press `cmd-alt-k`. **Zed shows nothing** — the task runs hidden,
+and the companion has no way to post back into the editor. Look at the `claude`
+prompt instead:
+
+```
+[15 lines selected] @server/tests/lockfile.rs#L241-255 @server/src/main.rs#L12
+```
+
+Three different things are visible there:
+
+| | |
+|---|---|
+| `[15 lines selected]` | **live**, from the current selection; changes as you move |
+| `@…#L241-255` | a **pinned** mention, from one keypress |
+| `@…#L12` | another, from a different file |
+
+A mention carries **lines only, not columns**. Select a single word and you get
+that word's line. The CLI's wire format has no field for a column, so this is a
+limit of the protocol rather than a choice.
+
+With nothing selected, a mention carries just the file.
+
+### If nothing happens
+
+```sh
+# Does the helper find a running companion?
+claude-code-connect at-mention --debug --worktree "$PWD"
+```
+
+It prints which port it reached. To watch the wire directly:
+
+```sh
+cargo run -p claude-code-connect --example watch -- /path/to/project
+```
+
+Move the cursor and you will see `selection_changed`; press the key and you will
+see `at_mentioned`.
+
+More detail in [`docs/at-mentions.md`](docs/at-mentions.md).
 
 ## Limits
 
