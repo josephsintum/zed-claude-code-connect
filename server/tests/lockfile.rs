@@ -204,6 +204,21 @@ fn the_directory_is_the_override_then_the_claude_config_dir_then_home() {
 /// "Zed" entry. The next companion to start sweeps those, and only those: a
 /// stranger's lock is not ours to judge, and a live one of ours belongs to
 /// another window.
+/// A pid that really is not running: spawn a trivial child, reap it, and reuse its
+/// number. Both XNU and Linux allocate pids forward from a counter, so a just-reaped
+/// pid is not reissued until the space wraps -- far more spawns than a test run.
+///
+/// A hardcoded 99_999 used to stand in for this. XNU wraps at ~99_999, so on a Mac
+/// that has been up a while it is a live process and these tests fail at random.
+fn dead_pid() -> u32 {
+    let mut child = std::process::Command::new("true")
+        .spawn()
+        .expect("spawn a process that exits immediately");
+    let pid = child.id();
+    child.wait().expect("reap it");
+    pid
+}
+
 #[tokio::test]
 async fn starting_sweeps_our_dead_locks_and_leaves_everyone_elses() {
     let dir = tempfile::tempdir().unwrap();
@@ -219,7 +234,7 @@ async fn starting_sweeps_our_dead_locks_and_leaves_everyone_elses() {
         )
         .unwrap();
     };
-    let dead = 99_999;
+    let dead = dead_pid();
     write(1001, "Zed", dead);
     write(1002, "Zed", std::process::id());
     write(1003, "Visual Studio Code", dead);

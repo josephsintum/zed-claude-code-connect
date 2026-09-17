@@ -24,9 +24,19 @@ fn write_lock(dir: &Path, port: u16, ide: &str, pid: u32, folder: &str) {
     .unwrap();
 }
 
-/// A pid that is certainly not running, for the stale-lock cases.
+/// A pid that really is not running: spawn a trivial child, reap it, and reuse its
+/// number. Both XNU and Linux allocate pids forward from a counter, so a just-reaped
+/// pid is not reissued until the space wraps -- far more spawns than a test run.
+///
+/// A hardcoded 99_999 used to stand in for this. XNU wraps at ~99_999, so on a Mac
+/// that has been up a while it is a live process and these tests fail at random.
 fn dead_pid() -> u32 {
-    99_999
+    let mut child = std::process::Command::new("true")
+        .spawn()
+        .expect("spawn a process that exits immediately");
+    let pid = child.id();
+    child.wait().expect("reap it");
+    pid
 }
 
 #[tokio::test]
