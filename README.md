@@ -1,5 +1,7 @@
 # Claude Code Connect
 
+![Zed on the left with seven lines selected; the Claude Code CLI on the right showing "Connected to Zed", the live selection, and a pinned file mention](docs/screenshot.png)
+
 Makes the `claude` CLI aware of what you are looking at in Zed — the active file
 and the current selection — the way the Claude Code extension does in VS Code.
 
