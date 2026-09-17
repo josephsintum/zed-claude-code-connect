@@ -7,7 +7,7 @@ use tracing::info;
 
 use claude_code_connect::companion::Companion;
 use claude_code_connect::config::Config;
-use claude_code_connect::lockfile::LockDir;
+use claude_code_connect::lockfile::{self, LockDir};
 use claude_code_connect::{at_mention, discovery, lsp};
 
 #[derive(Parser)]
@@ -78,7 +78,7 @@ async fn run(cli: Cli) -> Result<()> {
         None => std::env::current_dir()?,
     };
     let lock_dir = LockDir::resolve(
-        std::env::var_os("ZED_CLAUDE_IDE_DIR"),
+        std::env::var_os(lockfile::DIR_ENV),
         std::env::var_os("CLAUDE_CONFIG_DIR"),
     )?;
 

@@ -58,7 +58,7 @@ fn wait_for_exit(pid: u32, within: Duration) -> bool {
 fn spawn_serve(dir: &Path) -> Child {
     Command::new(bin())
         .args(["serve", "--worktree", dir.to_str().unwrap()])
-        .env("ZED_CLAUDE_IDE_DIR", dir)
+        .env("CLAUDE_CODE_CONNECT_DIR", dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -148,7 +148,7 @@ fn losing_the_parent_removes_the_lock() {
         .arg(r#"exec 3<&0; "$0" serve --worktree "$1" <&3 >/dev/null 2>&1 & echo $!; sleep 0.2"#)
         .arg(bin())
         .arg(dir.path())
-        .env("ZED_CLAUDE_IDE_DIR", dir.path())
+        .env("CLAUDE_CODE_CONNECT_DIR", dir.path())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())

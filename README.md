@@ -145,7 +145,7 @@ After changing the server, `editor: restart language server` in Zed picks up the
 binary; no extension reinstall needed. After changing the extension, re-run
 `zed: install dev extension`.
 
-`ZED_CLAUDE_IDE_DIR` overrides the lock directory. `CLAUDE_CODE_IDE_SKIP_VALID_CHECK=true` makes the
+`CLAUDE_CODE_CONNECT_DIR` overrides the lock directory. `CLAUDE_CODE_IDE_SKIP_VALID_CHECK=true` makes the
 CLI accept any lock regardless of working directory — useful when debugging a
 connection, and not something to leave set, since it is the only thing stopping the
 CLI attaching to a different project's companion.

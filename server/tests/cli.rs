@@ -19,7 +19,7 @@ fn bin() -> Command {
 fn run_to_exit(args: &[&str], ide_dir: &std::path::Path) -> (std::process::ExitStatus, bool) {
     let mut child = bin()
         .args(args)
-        .env("ZED_CLAUDE_IDE_DIR", ide_dir)
+        .env("CLAUDE_CODE_CONNECT_DIR", ide_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())

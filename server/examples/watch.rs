@@ -31,7 +31,7 @@ fn stamp() -> String {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let target = std::env::args().nth(1);
     let dir = claude_code_connect::lockfile::LockDir::resolve(
-        std::env::var_os("ZED_CLAUDE_IDE_DIR"),
+        std::env::var_os(claude_code_connect::lockfile::DIR_ENV),
         std::env::var_os("CLAUDE_CONFIG_DIR"),
     )?;
 

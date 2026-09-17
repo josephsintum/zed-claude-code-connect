@@ -101,7 +101,7 @@ and it can run alongside a real `claude` — both receive the broadcast.
 
 | Variable | Use |
 | --- | --- |
-| `ZED_CLAUDE_IDE_DIR` | Override the lock directory. |
+| `CLAUDE_CODE_CONNECT_DIR` | Override the lock directory. |
 | `CLAUDE_CONFIG_DIR` | Honoured when the above is unset: locks go to `$CLAUDE_CONFIG_DIR/ide`, which the CLI scans alongside `~/.claude/ide`. |
 | `CLAUDE_CODE_AUTO_CONNECT_IDE=true` | Makes `claude` attach without `/ide`. |
 | `CLAUDE_CODE_IDE_SKIP_VALID_CHECK=true` | Makes the CLI accept any lock regardless of cwd. Debugging only — it is the only thing preventing attachment to another project's companion. |

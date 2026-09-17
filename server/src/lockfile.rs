@@ -18,6 +18,10 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
+/// Environment variable naming the lock directory, for tests and for anyone
+/// running the companion by hand.
+pub const DIR_ENV: &str = "CLAUDE_CODE_CONNECT_DIR";
+
 /// Shown in the CLI's `/ide` picker, and how this project's own tooling tells its
 /// lock files apart from those of any other editor open on the same project.
 pub const IDE_NAME: &str = "Zed";
@@ -78,7 +82,7 @@ impl LockDir {
     /// Choose the directory from already-read environment values, so the library
     /// itself never touches the environment (tests inject a directory instead):
     ///
-    /// 1. `ZED_CLAUDE_IDE_DIR` -- an explicit override.
+    /// 1. [`DIR_ENV`] -- an explicit override.
     /// 2. `$CLAUDE_CONFIG_DIR/ide` -- the CLI scans this as well as the default
     ///    when the variable is set, and this project's tooling must agree with it.
     /// 3. `~/.claude/ide`.
