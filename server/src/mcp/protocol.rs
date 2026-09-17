@@ -39,6 +39,22 @@ pub struct MCPResponse {
     pub error: Option<MCPError>,
 }
 
+/// A handler rejecting the arguments it was given, rather than failing at them.
+///
+/// Every other handler error becomes -32603 Internal error, which tells a client to
+/// retry or report a bug. Bad arguments are -32602: the call itself is what needs
+/// fixing. `connection.rs` downcasts to tell them apart.
+#[derive(Debug)]
+pub struct InvalidParams(pub String);
+
+impl std::fmt::Display for InvalidParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for InvalidParams {}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MCPError {
     pub code: i32,
@@ -206,12 +222,13 @@ impl Dispatcher {
     }
 
     async fn handle_tools_call(&self, params: Option<Value>) -> Result<Value> {
-        let params = params.ok_or_else(|| anyhow::anyhow!("Missing parameters for tools/call"))?;
+        let params =
+            params.ok_or_else(|| InvalidParams("tools/call requires params".to_string()))?;
 
         let tool_name = params
             .get("name")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("Missing tool name"))?;
+            .ok_or_else(|| InvalidParams("tools/call requires a string name".to_string()))?;
 
         let default_args = serde_json::json!({});
         let arguments = params.get("arguments").unwrap_or(&default_args);

@@ -603,6 +603,35 @@ async fn an_unknown_method_echoes_the_request_id() {
     assert_eq!(resp["error"]["code"], json!(-32601));
 }
 
+/// A caller that omits `name`, or `params` entirely, has sent bad arguments -- not
+/// provoked a fault in this server. JSON-RPC separates the two, and -32603 tells a
+/// client to retry or report a bug where -32602 tells it to fix the call.
+#[tokio::test]
+async fn tools_call_without_a_name_is_invalid_params_not_an_internal_error() {
+    let h = start().await;
+    let (mut ws, _) = tokio_tungstenite::connect_async(request(h.port, Some(&h.token)))
+        .await
+        .unwrap();
+
+    send(
+        &mut ws,
+        json!({"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {}}),
+    )
+    .await;
+    let resp = recv_json(&mut ws).await;
+    assert_eq!(resp["id"], json!(1));
+    assert_eq!(resp["error"]["code"], json!(-32602), "missing tool name");
+
+    send(
+        &mut ws,
+        json!({"jsonrpc": "2.0", "id": 2, "method": "tools/call"}),
+    )
+    .await;
+    let resp = recv_json(&mut ws).await;
+    assert_eq!(resp["id"], json!(2));
+    assert_eq!(resp["error"]["code"], json!(-32602), "missing params");
+}
+
 /// Text that is not JSON leaves no id to answer with. The spec requires null in
 /// that case -- and null specifically, not an absent key.
 #[tokio::test]

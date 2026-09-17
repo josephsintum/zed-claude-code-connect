@@ -294,13 +294,20 @@ async fn handle_websocket_message(
                                 }
                             }
                             Err(e) => {
+                                // Bad arguments are the caller's to fix (-32602);
+                                // anything else is ours (-32603).
+                                let (code, message) =
+                                    match e.downcast_ref::<crate::mcp::protocol::InvalidParams>() {
+                                        Some(_) => (-32602, "Invalid params"),
+                                        None => (-32603, "Internal error"),
+                                    };
                                 error!("Error handling MCP request: {}", e);
                                 return send_error(
                                     ws_sender,
                                     peer_addr,
                                     request_id,
-                                    -32603,
-                                    "Internal error",
+                                    code,
+                                    message,
                                     Some(serde_json::json!({"details": e.to_string()})),
                                 )
                                 .await;
