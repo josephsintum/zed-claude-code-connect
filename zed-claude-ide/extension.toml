@@ -1,0 +1,122 @@
+id = "zed-claude-ide"
+name = "Zed Claude IDE"
+version = "0.1.0"
+schema_version = 1
+authors = []
+description = "Feeds Zed editor context (active file, selection) to the Claude Code CLI running in any terminal"
+repository = "https://github.com/YOUR_GITHUB_USER/zed-claude-ide"
+
+[language_servers.zed-claude-ide-server]
+name = "Claude Code Server"
+languages = [
+    # Common files (for early activation)
+    "Plain Text",
+    # Systems programming
+    "Rust",
+    "C",
+    "C++",
+    "Go",
+    "Zig",
+    # Web development
+    "JavaScript",
+    "TypeScript",
+    "TSX",
+    "HTML",
+    "CSS",
+    "SCSS",
+    "Vue",
+    "Svelte",
+    # Backend / scripting
+    "Python",
+    "Ruby",
+    "PHP",
+    "Perl",
+    "Lua",
+    "Shell",
+    "Fish",
+    # JVM languages
+    "Java",
+    "Kotlin",
+    "Scala",
+    "Clojure",
+    # Functional
+    "Elixir",
+    "Erlang",
+    "Haskell",
+    "OCaml",
+    "F#",
+    # Mobile
+    "Swift",
+    "Dart",
+    # Config / data
+    "JSON",
+    "YAML",
+    "TOML",
+    "XML",
+    # Documentation
+    "Markdown",
+    "LaTeX",
+    "Typst",
+    # Other
+    "SQL",
+    "GraphQL",
+    "Dockerfile",
+    "Makefile",
+    "Protobuf",
+]
+
+[language_servers.zed-claude-ide-server.language_ids]
+# Common files
+"Plain Text" = "plaintext"
+# Systems programming
+"Rust" = "rust"
+"C" = "c"
+"C++" = "cpp"
+"Go" = "go"
+"Zig" = "zig"
+# Web development
+"JavaScript" = "javascript"
+"TypeScript" = "typescript"
+"TSX" = "tsx"
+"HTML" = "html"
+"CSS" = "css"
+"SCSS" = "scss"
+"Vue" = "vue"
+"Svelte" = "svelte"
+# Backend / scripting
+"Python" = "python"
+"Ruby" = "ruby"
+"PHP" = "php"
+"Perl" = "perl"
+"Lua" = "lua"
+"Shell" = "shellscript"
+"Fish" = "fish"
+# JVM languages
+"Java" = "java"
+"Kotlin" = "kotlin"
+"Scala" = "scala"
+"Clojure" = "clojure"
+# Functional
+"Elixir" = "elixir"
+"Erlang" = "erlang"
+"Haskell" = "haskell"
+"OCaml" = "ocaml"
+"F#" = "fsharp"
+# Mobile
+"Swift" = "swift"
+"Dart" = "dart"
+# Config / data
+"JSON" = "json"
+"YAML" = "yaml"
+"TOML" = "toml"
+"XML" = "xml"
+# Documentation
+"Markdown" = "markdown"
+"LaTeX" = "latex"
+"Typst" = "typst"
+# Other
+"SQL" = "sql"
+"GraphQL" = "graphql"
+"Dockerfile" = "dockerfile"
+"Makefile" = "makefile"
+"Protobuf" = "protobuf"

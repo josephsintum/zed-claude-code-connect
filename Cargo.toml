@@ -1,5 +1,5 @@
 [workspace]
-members = ["zed-claude-ide-resolve", "zed-claude-ide-server"]
+members = ["zed-claude-ide", "zed-claude-ide-resolve", "zed-claude-ide-server"]
 resolver = "2"
 
 # The companion is downloaded from a GitHub release and run by an editor, so its size
