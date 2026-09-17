@@ -591,6 +591,48 @@ async fn tools_call_without_a_name_is_invalid_params_not_an_internal_error() {
     assert_eq!(resp["error"]["code"], json!(-32602), "missing params");
 }
 
+/// The CLI calls `openDiff` itself -- not through the model -- and on a reply it
+/// judges successful it takes `content[1].text` as the new file contents and
+/// reports `saved: true`, meaning a human reviewed and accepted the edit. A
+/// refusal dressed as a success is the one shape that must never leave here.
+///
+/// `getDiagnostics` is the opposite case: unadvertised, but a real answer.
+#[tokio::test]
+async fn a_refused_tool_is_flagged_as_an_error_and_an_answered_one_is_not() {
+    let h = start().await;
+    let (mut ws, _) = tokio_tungstenite::connect_async(request(h.port, Some(&h.token)))
+        .await
+        .unwrap();
+
+    for (id, tool) in [(1, "openDiff"), (2, "close_tab"), (3, "closeAllDiffTabs")] {
+        send(
+            &mut ws,
+            json!({"jsonrpc": "2.0", "id": id, "method": "tools/call",
+                   "params": {"name": tool, "arguments": {}}}),
+        )
+        .await;
+        let resp = recv_json(&mut ws).await;
+        assert_eq!(
+            resp["result"]["isError"],
+            json!(true),
+            "{tool} was refused, so the reply must not claim success: {resp}"
+        );
+    }
+
+    send(
+        &mut ws,
+        json!({"jsonrpc": "2.0", "id": 4, "method": "tools/call",
+               "params": {"name": "getDiagnostics", "arguments": {}}}),
+    )
+    .await;
+    let resp = recv_json(&mut ws).await;
+    assert_eq!(
+        resp["result"]["isError"],
+        json!(false),
+        "getDiagnostics really is answered: {resp}"
+    );
+}
+
 /// Text that is not JSON leaves no id to answer with. The spec requires null in
 /// that case -- and null specifically, not an absent key.
 #[tokio::test]

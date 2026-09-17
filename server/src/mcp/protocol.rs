@@ -208,11 +208,11 @@ impl Dispatcher {
         debug!("Calling tool: {}", tool_name);
         debug!("Tool arguments: {}", arguments);
 
-        let content = dispatch_tool(tool_name);
+        let (content, is_error) = dispatch_tool(tool_name);
 
         Ok(serde_json::json!({
             "content": content,
-            "isError": false
+            "isError": is_error
         }))
     }
 
@@ -267,19 +267,27 @@ pub fn create_capabilities() -> ServerCapabilities {
 
 // ---- tools ----
 
-fn dispatch_tool(tool_name: &str) -> Vec<TextContent> {
+/// The content of the reply, and whether it is a refusal.
+///
+/// The flag is load-bearing. The CLI calls `openDiff` directly, and on a reply it
+/// reads as successful it takes `content[1].text` as the new file contents and
+/// records `saved: true` -- that a human reviewed and accepted the edit. Saying
+/// "not supported" inside a reply marked successful invites exactly that reading.
+fn dispatch_tool(tool_name: &str) -> (Vec<TextContent>, bool) {
     match tool_name {
         // Not advertised (the companion cannot see other servers' diagnostics),
         // but a direct call still gets a well-formed reply rather than -32601.
-        "getDiagnostics" => text(serde_json::json!({"diagnostics": []})),
+        "getDiagnostics" => (text(serde_json::json!({"diagnostics": []})), false),
         // The three the CLI really invokes -- openDiff, close_tab,
         // closeAllDiffTabs -- need an editor surface Zed exposes to extensions
-        // in no form. Say so, rather than fake a result: a faked FILE_SAVED
-        // from openDiff would auto-approve every edit unreviewed.
-        _ => text(Value::String(format!(
-            "NOT_SUPPORTED: Tool '{tool_name}' is not available in Zed integration. \
-             File operations should be performed directly."
-        ))),
+        // in no form.
+        _ => (
+            text(Value::String(format!(
+                "NOT_SUPPORTED: Tool '{tool_name}' is not available in Zed integration. \
+                 File operations should be performed directly."
+            ))),
+            true,
+        ),
     }
 }
 
