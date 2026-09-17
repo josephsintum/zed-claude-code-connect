@@ -58,20 +58,50 @@ jobs:
         with:
           merge-multiple: true
 
-      # `preserve_order` uploads the assets one at a time. Uploading all four at
-      # once stalled twice running -- v0.1.1 timed out with none uploaded, v0.1.2
-      # with three of four -- and both needed a manual re-run. A part-uploaded
-      # release is worse than a failed one: the extension finds it and then cannot
-      # fetch the asset for the missing platform.
+      # The `gh` CLI rather than a release action, because uploads to the GitHub
+      # asset API stall often enough to matter: three tags running (v0.1.1, v0.1.2,
+      # v0.2.0) failed here and every one succeeded on an unmodified re-run. The
+      # action has no retry input, so the only fix it allows is a human re-running
+      # the job. This retries on its own.
       #
-      # The action has no retry input, so a stall still fails the job. That is the
-      # right failure: re-run it with `gh run rerun <id> --failed`, which reuses
-      # the built artefacts and only repeats the upload.
+      # A part-uploaded release is the outcome to avoid: the extension finds it,
+      # asks for the asset for its platform, and that one is the one missing. So
+      # the release is created as a draft, every asset is uploaded into it, and
+      # only then is it published. A run that dies partway leaves a draft, which
+      # `latest_github_release` does not return.
       - name: Publish
-        uses: softprops/action-gh-release@v2
-        with:
-          files: claude-code-connect-*
-          generate_release_notes: true
-          preserve_order: true
-          # A glob matching nothing means a build silently produced no binary.
-          fail_on_unmatched_files: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          assets=(claude-code-connect-*)
+          if [ ${#assets[@]} -ne 4 ]; then
+            echo "expected 4 assets, found ${#assets[@]}: ${assets[*]:-none}" >&2
+            exit 1
+          fi
+
+          # Idempotent, so re-running the job after a partial failure works.
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --generate-notes --title "$TAG"
+          fi
+
+          for asset in "${assets[@]}"; do
+            for attempt in 1 2 3 4 5; do
+              if gh release upload "$TAG" "$asset" --clobber; then
+                echo "uploaded $asset"
+                break
+              fi
+              if [ "$attempt" -eq 5 ]; then
+                echo "giving up on $asset after 5 attempts" >&2
+                exit 1
+              fi
+              echo "upload of $asset failed, retrying (attempt $attempt)" >&2
+              sleep $((attempt * 10))
+            done
+          done
+
+          # Every asset is in place, so the release is safe to expose.
+          gh release edit "$TAG" --draft=false
