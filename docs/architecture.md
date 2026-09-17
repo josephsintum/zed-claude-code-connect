@@ -48,17 +48,17 @@ the companion can bind a port. Being a language server, it receives editor state
 ## 3. The pieces
 
 ```
-┌───────────────────────── Zed ─────────────────────────┐
+┌───────────────────────── Zed ──────────────────────────┐
 │                                                        │
-│   zed-claude-ide  (WASM, ~380 lines)                   │
+│   claude-code-connect-extension  (WASM, ~255 lines)    │
 │     tells Zed what to spawn, and fetches the binary    │
 │                                                        │
 └──────────────────────────┬─────────────────────────────┘
                            │ spawns, then speaks LSP over stdio
                            ▼
               ┌────────────────────────────┐
-              │  claude-code-connect     │   one per Zed window
-              │  (native, ~2600 lines)     │
+              │  claude-code-connect       │   one per Zed window
+              │  (native, ~3750 lines)     │
               │                            │
               │  • LSP server  (from Zed)  │
               │  • MCP server  (to claude) │
@@ -72,7 +72,7 @@ the companion can bind a port. Being a language server, it receives editor state
               └────────────────────────┘
 ```
 
-### `zed-claude-ide` — the extension crate
+### `claude-code-connect-extension` — the extension crate
 
 A `cdylib` compiled to `wasm32-wasip2`. Its whole job is `language_server_command`:
 return a path to the companion binary and the arguments to run it with. It resolves

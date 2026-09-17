@@ -1,4 +1,4 @@
-# zed-claude-ide
+# Claude Code Connect
 
 Makes the `claude` CLI aware of what you are looking at in Zed — the active file
 and the current selection — the way the Claude Code extension does in VS Code.

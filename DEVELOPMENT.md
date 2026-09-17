@@ -55,7 +55,7 @@ only carries Zed's own messages about the server, such as protocol errors).
 **Changing the extension** — rare:
 
 ```sh
-cargo build --release -p zed-claude-ide --target wasm32-wasip2
+cargo build --release -p claude-code-connect-extension --target wasm32-wasip2
 ```
 
 Then `zed: install dev extension` again and re-select the `extension/`
