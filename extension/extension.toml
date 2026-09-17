@@ -4,7 +4,7 @@ version = "0.1.0"
 schema_version = 1
 authors = ["Joseph Sintum <josephsintum@gmail.com>"]
 description = "Connects the Claude Code CLI in your terminal to the file and selection you have open in Zed."
-repository = "https://github.com/josephsintum/zed-claude-ide"
+repository = "https://github.com/josephsintum/zed-claude-code-connect"
 
 [language_servers.claude-code-connect]
 name = "Claude Code Connect"

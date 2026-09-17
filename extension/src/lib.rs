@@ -21,7 +21,7 @@ const SERVER_ID: &str = "claude-code-connect";
 
 /// Releases are downloaded from here. Asset names in that release must match
 /// `asset_name` exactly; a test reads the workflow and fails if they drift.
-const GITHUB_REPO: &str = "josephsintum/zed-claude-ide";
+const GITHUB_REPO: &str = "josephsintum/zed-claude-code-connect";
 
 struct ClaudeCodeExtension {
     /// The binary resolved earlier in this session.
