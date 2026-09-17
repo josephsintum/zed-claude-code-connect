@@ -58,8 +58,20 @@ jobs:
         with:
           merge-multiple: true
 
+      # `preserve_order` uploads the assets one at a time. Uploading all four at
+      # once stalled twice running -- v0.1.1 timed out with none uploaded, v0.1.2
+      # with three of four -- and both needed a manual re-run. A part-uploaded
+      # release is worse than a failed one: the extension finds it and then cannot
+      # fetch the asset for the missing platform.
+      #
+      # The action has no retry input, so a stall still fails the job. That is the
+      # right failure: re-run it with `gh run rerun <id> --failed`, which reuses
+      # the built artefacts and only repeats the upload.
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
           files: claude-code-connect-*
           generate_release_notes: true
+          preserve_order: true
+          # A glob matching nothing means a build silently produced no binary.
+          fail_on_unmatched_files: true
