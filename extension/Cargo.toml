@@ -1,5 +1,5 @@
 [package]
-name = "zed-claude-ide"
+name = "claude-code-ide"
 version = "0.1.0"
 edition = "2021"
 

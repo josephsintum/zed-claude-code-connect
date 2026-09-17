@@ -38,4 +38,4 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build extension
-        run: cargo build --locked --release -p zed-claude-ide --target wasm32-wasip2
+        run: cargo build --locked --release -p claude-code-ide --target wasm32-wasip2

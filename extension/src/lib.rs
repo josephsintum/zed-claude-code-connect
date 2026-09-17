@@ -63,7 +63,7 @@ impl Extension for ClaudeCodeExtension {
             });
 
         eprintln!(
-            "[zed-claude-ide] starting {command} for {}",
+            "[claude-code-ide] starting {command} for {}",
             worktree.root_path()
         );
         Ok(Command {
@@ -89,7 +89,7 @@ impl ClaudeCodeExtension {
             .ok()
             .and_then(|s| s.binary.and_then(|b| b.path))
         {
-            eprintln!("[zed-claude-ide] using binary from Zed settings: {path}");
+            eprintln!("[claude-code-ide] using binary from Zed settings: {path}");
             return Ok(path);
         }
 
@@ -108,7 +108,7 @@ impl ClaudeCodeExtension {
                 match worktree.which(SERVER_ID) {
                     Some(path) => {
                         eprintln!(
-                            "[zed-claude-ide] {release_error}; using {path} from PATH instead"
+                            "[claude-code-ide] {release_error}; using {path} from PATH instead"
                         );
                         path
                     }
@@ -245,9 +245,9 @@ fn existing_binaries(prefix: &str) -> Vec<String> {
 
 fn fallback_binary(prefix: &str) -> Option<String> {
     let path = resolve::fallback_binary(prefix, existing_binaries(prefix))?;
-    eprintln!("[zed-claude-ide] using cached binary {path}");
+    eprintln!("[claude-code-ide] using cached binary {path}");
     if let Err(e) = make_file_executable(&path) {
-        eprintln!("[zed-claude-ide] could not make {path} executable: {e}");
+        eprintln!("[claude-code-ide] could not make {path} executable: {e}");
     }
     Some(path)
 }

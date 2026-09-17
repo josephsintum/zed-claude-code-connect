@@ -1,9 +1,9 @@
-id = "zed-claude-ide"
-name = "Zed Claude IDE"
+id = "claude-code-ide"
+name = "Claude Code IDE"
 version = "0.1.0"
 schema_version = 1
 authors = ["Joseph Sintum <josephsintum@gmail.com>"]
-description = "Feeds Zed editor context (active file, selection) to the Claude Code CLI running in any terminal"
+description = "Connects the Claude Code CLI in your terminal to the file and selection you have open in Zed."
 repository = "https://github.com/josephsintum/zed-claude-ide"
 
 [language_servers.claude-code-ide-server]
