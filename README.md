@@ -7,7 +7,7 @@ Works with the CLI running in **any terminal**, including a separate one like
 Ghostty or iTerm. It does not need to run inside Zed's integrated terminal.
 
 ```
-Zed ──LSP(stdio)──> zed-claude-ide-server ──WebSocket(MCP)──> claude
+Zed ──LSP(stdio)──> claude-code-ide-server ──WebSocket(MCP)──> claude
  │                    │                                         ▲
  │                    ├─ writes ~/.claude/ide/<port>.lock ───────┘
  └─ WASM extension ───┘                                     (discovery)
@@ -52,18 +52,18 @@ Requires Rust and the `wasm32-wasip2` target:
 
 ```sh
 rustup target add wasm32-wasip2
-cargo build --release -p zed-claude-ide-server
+cargo build --release -p claude-code-ide-server
 ```
 
 Then in Zed: `cmd-shift-p` → `zed: install dev extension` → select the
-`zed-claude-ide/` directory (the one containing `extension.toml`).
+`extension/` directory (the one containing `extension.toml`).
 
 Point the extension at your local build in `~/.config/zed/settings.json`:
 
 ```json
 "lsp": {
-  "zed-claude-ide-server": {
-    "binary": { "path": "/absolute/path/to/target/release/zed-claude-ide-server" }
+  "claude-code-ide-server": {
+    "binary": { "path": "/absolute/path/to/target/release/claude-code-ide-server" }
   }
 }
 ```
@@ -132,9 +132,9 @@ These are structural, not a to-do list:
 
 ```sh
 cargo test                      # unit + fake-CLI integration tests
-cargo build --release -p zed-claude-ide-server
-cargo run -p zed-claude-ide-server --example watch   # list running companions
-cargo run -p zed-claude-ide-server --example watch -- /path/to/project
+cargo build --release -p claude-code-ide-server
+cargo run -p claude-code-ide-server --example watch   # list running companions
+cargo run -p claude-code-ide-server --example watch -- /path/to/project
 ```
 
 `examples/watch` connects exactly as the CLI does and prints every notification the

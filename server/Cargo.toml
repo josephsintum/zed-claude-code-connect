@@ -1,14 +1,14 @@
 [package]
-name = "zed-claude-ide-server"
+name = "claude-code-ide-server"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "zed_claude_ide_server"
+name = "claude_code_ide_server"
 path = "src/lib.rs"
 
 [[bin]]
-name = "zed-claude-ide-server"
+name = "claude-code-ide-server"
 path = "src/main.rs"
 
 [dependencies]

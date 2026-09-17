@@ -44,7 +44,7 @@ strings "$CLI" | grep -E "CLAUDE_CODE_AUTO_CONNECT_IDE|CLAUDE_CODE_SSE_PORT"
 Reading the implementations tells you what *should* happen. To see what does:
 
 ```sh
-cargo run -p zed-claude-ide-server --example watch -- /path/to/project
+cargo run -p claude-code-ide-server --example watch -- /path/to/project
 ```
 
 This connects to a running companion exactly as the CLI does and prints every

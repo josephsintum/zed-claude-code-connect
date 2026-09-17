@@ -4,7 +4,7 @@
 //! Discovery mirrors the CLI: scan the lock directory, pick the lock whose
 //! workspaceFolders contain the given path, read its port and token.
 //!
-//!     cargo run -p zed-claude-ide-server --example watch -- /path/to/project
+//!     cargo run -p claude-code-ide-server --example watch -- /path/to/project
 //!
 //! With no argument it lists the locks it can see.
 
@@ -30,14 +30,14 @@ fn stamp() -> String {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let target = std::env::args().nth(1);
-    let dir = zed_claude_ide_server::lockfile::LockDir::resolve(
+    let dir = claude_code_ide_server::lockfile::LockDir::resolve(
         std::env::var_os("ZED_CLAUDE_IDE_DIR"),
         std::env::var_os("CLAUDE_CONFIG_DIR"),
     )?;
 
     let Some(target) = target else {
         // No argument: list what is discoverable, as the CLI would see it.
-        for lock in zed_claude_ide_server::discovery::all_locks(&dir)? {
+        for lock in claude_code_ide_server::discovery::all_locks(&dir)? {
             println!(
                 "port {:<6} {:<22} {}",
                 lock.port,
@@ -49,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     };
 
-    let lock = zed_claude_ide_server::discovery::lock_for(&dir, std::path::Path::new(&target))?;
+    let lock = claude_code_ide_server::discovery::lock_for(&dir, std::path::Path::new(&target))?;
     let (port, token, folder) = (
         lock.port,
         lock.auth_token.clone(),

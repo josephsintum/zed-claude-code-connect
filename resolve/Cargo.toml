@@ -1,5 +1,5 @@
 [package]
-name = "zed-claude-ide-resolve"
+name = "claude-code-ide-resolve"
 version = "0.1.0"
 edition = "2021"
 description = "Pure binary-resolution rules for the zed-claude-ide extension, kept free of the WASM extension API so they can be tested on the host."

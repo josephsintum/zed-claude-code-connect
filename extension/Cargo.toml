@@ -8,4 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 zed_extension_api = "0.7.0"
-zed-claude-ide-resolve = { path = "../resolve" }
+claude-code-ide-resolve = { path = "../resolve" }

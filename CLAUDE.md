@@ -3,7 +3,7 @@
 Guidance for Claude Code when working in this repository.
 
 Read [docs/architecture.md](docs/architecture.md) before changing anything in
-`zed-claude-ide-server/`. The protocol this implements is undocumented and was
+`server/`. The protocol this implements is undocumented and was
 reconstructed by reading shipped binaries; several parts look arbitrary and are not.
 
 ## Things that will bite you
@@ -49,5 +49,5 @@ leave them.
 watch it live:
 
 ```sh
-cargo run -p zed-claude-ide-server --example watch -- /path/to/project
+cargo run -p claude-code-ide-server --example watch -- /path/to/project
 ```

@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::Path;
 
-use zed_claude_ide_resolve as resolve;
+use claude_code_ide_resolve as resolve;
 use zed_extension_api::{
     current_platform, download_file, latest_github_release, make_file_executable,
     set_language_server_installation_status, settings::LspSettings, Architecture, Command,
@@ -17,7 +17,7 @@ use zed_extension_api::{
 
 /// Must match the `[language_servers.*]` key in extension.toml, and is the
 /// key users put under `"lsp"` in settings.json to override the binary.
-const SERVER_ID: &str = "zed-claude-ide-server";
+const SERVER_ID: &str = "claude-code-ide-server";
 
 /// Releases are downloaded from here. Asset names in that release must match
 /// `asset_name` exactly; a test reads the workflow and fails if they drift.
@@ -79,7 +79,7 @@ impl ClaudeCodeExtension {
     ///   1. An explicit path in Zed's `lsp` settings -- the development loop.
     ///   2. The path resolved earlier in this session.
     ///   3. A cached or freshly downloaded GitHub release asset.
-    ///   4. `zed-claude-ide-server` on PATH, as an absolute path from `which`.
+    ///   4. `claude-code-ide-server` on PATH, as an absolute path from `which`.
     fn server_binary(
         &mut self,
         language_server_id: &LanguageServerId,
@@ -104,7 +104,7 @@ impl ClaudeCodeExtension {
             Err(release_error) => {
                 // `which` yields an absolute path, which is the only kind Zed can
                 // run from here: a relative command is joined onto the extension's
-                // work directory, so a bare "zed-claude-ide-server" never resolved.
+                // work directory, so a bare "claude-code-ide-server" never resolved.
                 match worktree.which(SERVER_ID) {
                     Some(path) => {
                         eprintln!(
@@ -212,7 +212,7 @@ fn release_binary(language_server_id: &LanguageServerId) -> Result<String> {
     }
 }
 
-/// Release asset name for this machine, e.g. `zed-claude-ide-server-macos-aarch64`.
+/// Release asset name for this machine, e.g. `claude-code-ide-server-macos-aarch64`.
 fn asset_prefix() -> Result<&'static str> {
     // Zed's platform detection, not env::consts, which would say wasm32.
     let (os, arch) = current_platform();

@@ -5,14 +5,14 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use tracing::info;
 
-use zed_claude_ide_server::companion::Companion;
-use zed_claude_ide_server::config::Config;
-use zed_claude_ide_server::lockfile::LockDir;
-use zed_claude_ide_server::{at_mention, discovery, lsp};
+use claude_code_ide_server::companion::Companion;
+use claude_code_ide_server::config::Config;
+use claude_code_ide_server::lockfile::LockDir;
+use claude_code_ide_server::{at_mention, discovery, lsp};
 
 #[derive(Parser)]
 #[command(
-    name = "zed-claude-ide-server",
+    name = "claude-code-ide-server",
     version,
     about = "Companion process that lets the claude CLI see what is selected in Zed"
 )]
@@ -124,7 +124,7 @@ fn init_tracing(debug: bool) -> Result<()> {
 /// shutdown path: stop accepting, close clients, remove the lock file.
 async fn serve(config: Config) -> Result<()> {
     info!(
-        "zed-claude-ide-server {} starting for {}",
+        "claude-code-ide-server {} starting for {}",
         env!("CARGO_PKG_VERSION"),
         config.worktree.display()
     );

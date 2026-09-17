@@ -8,10 +8,10 @@ mod common;
 
 use std::time::Duration;
 
+use claude_code_ide_server::companion::Companion;
+use claude_code_ide_server::config::Config;
+use claude_code_ide_server::lockfile::LockDir;
 use tokio::time::timeout;
-use zed_claude_ide_server::companion::Companion;
-use zed_claude_ide_server::config::Config;
-use zed_claude_ide_server::lockfile::LockDir;
 
 fn config(dir: &tempfile::TempDir) -> Config {
     Config::new(dir.path(), LockDir::at(dir.path()))

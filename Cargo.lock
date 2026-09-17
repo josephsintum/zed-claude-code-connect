@@ -162,6 +162,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c133bc6a41be0d194c306b5506d15e6feeea7b1d6604bd3f8310dfb2ca96486"
 
 [[package]]
+name = "claude-code-ide-resolve"
+version = "0.1.0"
+
+[[package]]
+name = "claude-code-ide-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "dirs",
+ "futures-util",
+ "libc",
+ "lsp-types",
+ "rand",
+ "serde",
+ "serde_json",
+ "subtle",
+ "tempfile",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1630,35 +1657,8 @@ dependencies = [
 name = "zed-claude-ide"
 version = "0.1.0"
 dependencies = [
- "zed-claude-ide-resolve",
+ "claude-code-ide-resolve",
  "zed_extension_api",
-]
-
-[[package]]
-name = "zed-claude-ide-resolve"
-version = "0.1.0"
-
-[[package]]
-name = "zed-claude-ide-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "dirs",
- "futures-util",
- "libc",
- "lsp-types",
- "rand",
- "serde",
- "serde_json",
- "subtle",
- "tempfile",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "uuid",
 ]
 
 [[package]]

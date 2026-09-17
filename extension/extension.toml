@@ -6,7 +6,7 @@ authors = ["Joseph Sintum <josephsintum@gmail.com>"]
 description = "Feeds Zed editor context (active file, selection) to the Claude Code CLI running in any terminal"
 repository = "https://github.com/josephsintum/zed-claude-ide"
 
-[language_servers.zed-claude-ide-server]
+[language_servers.claude-code-ide-server]
 name = "Claude Code Server"
 languages = [
     # Common files (for early activation)
@@ -65,7 +65,7 @@ languages = [
     "Protobuf",
 ]
 
-[language_servers.zed-claude-ide-server.language_ids]
+[language_servers.claude-code-ide-server.language_ids]
 # Common files
 "Plain Text" = "plaintext"
 # Systems programming

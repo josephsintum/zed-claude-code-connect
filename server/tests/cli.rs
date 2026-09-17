@@ -10,7 +10,7 @@ use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
 fn bin() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_zed-claude-ide-server"))
+    Command::new(env!("CARGO_BIN_EXE_claude-code-ide-server"))
 }
 
 /// Run the companion with stdin already at EOF, so the LSP side ends at once and

@@ -27,9 +27,9 @@ target/
 ehthumbs.db
 Thumbs.db
 
-# Zed extension specific
+# Zed extension specific. The compiled artefact only: extension/ is a source
+# directory in this repo, so it must never be ignored.
 *.wasm
-extension/
 # build
 /target
 

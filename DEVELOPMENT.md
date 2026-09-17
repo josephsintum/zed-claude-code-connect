@@ -5,11 +5,11 @@ For what the project is and how it works, see [docs/architecture.md](docs/archit
 ## Layout
 
 ```
-zed-claude-ide/                 the Zed extension (Rust -> wasm32-wasip2)
+extension/                 the Zed extension (Rust -> wasm32-wasip2)
   src/lib.rs                    resolves the companion binary, returns the spawn command
   extension.toml                extension id, and the languages that trigger activation
 
-zed-claude-ide-server/          the native companion
+server/          the native companion
   src/main.rs                   `serve` (what the extension launches) and `at-mention`;
                                 the only place the environment is read; the one shutdown path
   src/companion.rs              Companion::start(Config) -> Handle; the handle owns the lock file
@@ -31,7 +31,7 @@ zed-claude-ide-server/          the native companion
   tests/                        fake CLI + fake Zed rig (common/), handshake, editor path,
                                 lock file, discovery, CLI surface, process exits
 
-zed-claude-ide-resolve/         pure binary-resolution rules the extension uses, testable on the host
+resolve/         pure binary-resolution rules the extension uses, testable on the host
 ```
 
 ## Prerequisites
@@ -45,7 +45,7 @@ rustup target add wasm32-wasip2
 **Changing the companion** — the common case:
 
 ```sh
-cargo build --release -p zed-claude-ide-server
+cargo build --release -p claude-code-ide-server
 ```
 
 Then `editor: restart language server` in Zed. No extension reinstall, no Zed
@@ -58,22 +58,22 @@ only carries Zed's own messages about the server, such as protocol errors).
 cargo build --release -p zed-claude-ide --target wasm32-wasip2
 ```
 
-Then `zed: install dev extension` again and re-select the `zed-claude-ide/`
+Then `zed: install dev extension` again and re-select the `extension/`
 directory. Zed compiles the WASM itself.
 
-**First-time install**: `zed: install dev extension`, select `zed-claude-ide/`,
+**First-time install**: `zed: install dev extension`, select `extension/`,
 then point Zed at your local build in `~/.config/zed/settings.json`:
 
 ```json
 "lsp": {
-  "zed-claude-ide-server": {
-    "binary": { "path": "/abs/path/to/target/release/zed-claude-ide-server" }
+  "claude-code-ide-server": {
+    "binary": { "path": "/abs/path/to/target/release/claude-code-ide-server" }
   }
 }
 ```
 
 Without that, the extension tries to download a release binary from `GITHUB_REPO`
-in `zed-claude-ide/src/lib.rs`.
+in `extension/src/lib.rs`.
 
 ## Checks
 
@@ -89,8 +89,8 @@ itself, so a break there would otherwise only appear when a user installs it.
 ## Seeing what is on the wire
 
 ```sh
-cargo run -p zed-claude-ide-server --example watch                  # list companions
-cargo run -p zed-claude-ide-server --example watch -- /path/to/proj # attach
+cargo run -p claude-code-ide-server --example watch                  # list companions
+cargo run -p claude-code-ide-server --example watch -- /path/to/proj # attach
 ```
 
 This connects exactly as the CLI does and prints each notification with timestamps
