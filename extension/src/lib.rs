@@ -129,6 +129,29 @@ impl ClaudeCodeExtension {
     }
 }
 
+/// A copy of the chosen binary under a name that does not change between releases.
+///
+/// The extension runs the versioned file; this exists so a Zed *task* can name the
+/// binary at all. Tasks take a fixed command string, and the versioned name moves
+/// every release, so an at-mention keybinding written against it breaks silently
+/// on the next update.
+///
+/// Deliberately NOT the platform-prefixed name: `resolve::existing_binaries`
+/// counts that as an old build and the cleanup below would delete it.
+const STABLE_NAME: &str = "claude-code-connect";
+
+/// Refresh [`STABLE_NAME`] to point at `versioned`. Best effort: a failure here
+/// costs the at-mention hotkey, not the companion, so it is logged and ignored.
+fn refresh_stable_copy(versioned: &str) {
+    if let Err(e) = fs::copy(versioned, STABLE_NAME).map_err(|e| e.to_string()) {
+        eprintln!("[claude-code-connect] could not write {STABLE_NAME}: {e}");
+        return;
+    }
+    if let Err(e) = make_file_executable(STABLE_NAME) {
+        eprintln!("[claude-code-connect] could not make {STABLE_NAME} executable: {e}");
+    }
+}
+
 /// The current release from GitHub, downloaded if this version is not already in
 /// the work directory. Falls back to whatever versioned build is on disk when the
 /// network is unavailable, so an offline start still works.
@@ -161,6 +184,7 @@ fn release_binary(language_server_id: &LanguageServerId) -> Result<String> {
             &LanguageServerInstallationStatus::None,
         );
         make_file_executable(&versioned)?;
+        refresh_stable_copy(&versioned);
         return Ok(versioned);
     }
 
@@ -190,6 +214,7 @@ fn release_binary(language_server_id: &LanguageServerId) -> Result<String> {
                     let _ = fs::remove_file(&old);
                 }
             }
+            refresh_stable_copy(&versioned);
             set_language_server_installation_status(
                 language_server_id,
                 &LanguageServerInstallationStatus::None,

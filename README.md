@@ -123,27 +123,27 @@ Zed extensions cannot register commands or keybindings at `schema_version = 1`.
 A Zed *task* can run a command and be bound to a key, so the hotkey is three
 pieces of your own config rather than something the extension ships.
 
-### 1. Put the helper on your PATH
+### 1. Find the helper
 
-It is the same binary the extension runs, with a subcommand. The extension keeps
-its copy under a versioned name in its own work directory, so fetch your own:
+Nothing to install. The at-mention helper is the companion binary with a
+subcommand, and the extension already put a copy under a fixed name beside the
+versioned one it runs:
 
-```sh
-# pick the asset for your platform:
-#   claude-code-connect-macos-aarch64    Apple silicon
-#   claude-code-connect-macos-x86_64     Intel Mac
-#   claude-code-connect-linux-x86_64
-#   claude-code-connect-linux-aarch64
-curl -L -o ~/.local/bin/claude-code-connect \
-  https://github.com/josephsintum/zed-claude-code-connect/releases/latest/download/claude-code-connect-macos-aarch64
-chmod +x ~/.local/bin/claude-code-connect
+```
+~/Library/Application Support/Zed/extensions/work/claude-code-connect/claude-code-connect
 ```
 
-Or from source, if you have Rust:
+On Linux, `~/.local/share/zed/extensions/work/claude-code-connect/claude-code-connect`.
+
+That name does not change between releases, which is the point — a Zed task takes
+a fixed command string, so a path with a version in it would break on the next
+update.
+
+If you would rather have it on your `PATH`, copy or link it:
 
 ```sh
-cargo build --release -p claude-code-connect
-cp target/release/claude-code-connect ~/.local/bin/
+ln -sf ~/Library/Application\ Support/Zed/extensions/work/claude-code-connect/claude-code-connect \
+   ~/.local/bin/claude-code-connect
 ```
 
 ### 2. Add the task
@@ -153,7 +153,7 @@ cp target/release/claude-code-connect ~/.local/bin/
 ```json
 {
   "label": "Claude: mention selection",
-  "command": "claude-code-connect",
+  "command": "/Users/YOU/Library/Application Support/Zed/extensions/work/claude-code-connect/claude-code-connect",
   "args": ["at-mention", "--worktree", "$ZED_WORKTREE_ROOT"],
   "use_new_terminal": false,
   "allow_concurrent_runs": true,
