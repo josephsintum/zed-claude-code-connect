@@ -177,11 +177,16 @@ impl Handle {
         let Handle {
             lock,
             cancel,
+            _cancel_on_drop,
             mut tasks,
             ..
         } = self;
-        cancel.cancel();
+        // `_cancel_on_drop` is named rather than swallowed by `..`, because `..`
+        // drops it at this statement -- cancelling before either line below runs.
+        // Bound here, its Drop waits until the end of the function, so these two
+        // lines are the only things that unlink or cancel, in that order.
         drop(lock);
+        cancel.cancel();
         let drained = tokio::time::timeout(SHUTDOWN_GRACE, async {
             while tasks.join_next().await.is_some() {}
         })
