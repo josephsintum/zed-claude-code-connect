@@ -37,9 +37,8 @@ async fn find_available_port(
     }
 
     // Random draws from the range, then let the OS choose as a last resort.
-    use rand::Rng;
     for _ in 0..PORT_ATTEMPTS {
-        let port = rand::thread_rng().gen_range(port_start..=port_end);
+        let port = rand::random_range(port_start..=port_end);
         let addr = format!("127.0.0.1:{}", port);
         if let Ok(listener) = TcpListener::bind(&addr).await {
             info!("Found available port: {}", port);
