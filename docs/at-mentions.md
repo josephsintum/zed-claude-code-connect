@@ -1,6 +1,6 @@
 # The @-mention hotkey
 
-In VS Code, `cmd-alt-k` drops `@path#L12-20` into the Claude Code prompt for
+In VS Code, `cmd-option-k` drops `@path#L12-20` into the Claude Code prompt for
 whatever you have selected. This sets up the same thing in Zed.
 
 It takes two small edits to your own Zed config, because a Zed extension cannot
@@ -72,9 +72,10 @@ In `~/.config/zed/keymap.json`:
 }
 ```
 
-`cmd-alt-k` mirrors VS Code. If your `base_keymap` is JetBrains or Sublime, check
-for a conflict first with `zed: open default keymap` — `cmd-shift-a` and
-`cmd-escape` are other reasonable choices.
+That is `cmd-option-k` on a Mac, which mirrors VS Code. Zed spells the Option key
+`alt` in `keymap.json`, so keep `alt` there. If your `base_keymap` is JetBrains or
+Sublime, check for a conflict first with `zed: open default keymap` —
+`cmd-shift-a` and `cmd-escape` are other reasonable choices.
 
 ## Checking it works
 

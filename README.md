@@ -184,14 +184,16 @@ is nothing to flush first.
 }
 ```
 
-`cmd-alt-k` mirrors VS Code. If your `base_keymap` is JetBrains or Sublime, check
-for a conflict first: `zed: open default keymap`, then search for the chord.
+That is `cmd-option-k` on a Mac, which mirrors VS Code. Zed spells the Option key
+`alt` in `keymap.json`, so keep `alt` there. If your `base_keymap` is JetBrains or
+Sublime, check for a conflict first: `zed: open default keymap`, then search for
+the chord.
 
 Restart Zed — tasks and keymaps are read at startup.
 
 ### Using it
 
-Select something, press `cmd-alt-k`. **Zed shows nothing** — the task runs hidden,
+Select something, press `cmd-option-k`. **Zed shows nothing** — the task runs hidden,
 and the companion has no way to post back into the editor. Look at the `claude`
 prompt instead:
 
